@@ -1,8 +1,8 @@
 /**************************************************************************
  *
- * web_api.c
+ * web-server.c
  *
- *    Web App to Sirius
+ *    Web server to Sirius
  *
  * Copyright 2019 Intelbras
  *
