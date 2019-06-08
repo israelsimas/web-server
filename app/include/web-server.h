@@ -35,6 +35,7 @@
 #define DATABASE_REQUEST  "/db.cgi"
 #define STATUS_REQUEST    "/status.cgi"
 #define ENDPOINT_STATUS_REQUEST "/endpoint_status.cgi"
+#define STATUS_REGISTER_REQUEST "/statusRegister.cgi"
 
 #define NOT_FOUND_MESSAGE "Page not found, do what you want"
 
@@ -115,6 +116,7 @@
 }"
 
 #define ENDPOINT_CONTENT "{\n  \"endpointsFree\": 1\n  }\n   "
+#define REGISTER_STATUS_CONTENT "{\n  \"RegisterStatus\": \"200\", \n \"RegisterICIP\": \"0\"  }\n   "
 
 /**************************************************************************
  * TYPEDEFS
@@ -208,6 +210,11 @@ int callback_status(const struct _u_request *request, struct _u_response *respon
  * Callback function used to get status from Endpoint
  */ 
 int callback_endpoint_status(const struct _u_request *request, struct _u_response *response, void *user_data);
+
+/*
+ * Callback function used to get register status from Endpoint
+ */ 
+int callback_status_register(const struct _u_request *request, struct _u_response *response, void *user_data);
 
 /*
  * Callback function used to serve static files that are present in the static folder

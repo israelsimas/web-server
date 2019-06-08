@@ -77,7 +77,8 @@ int main(int argc, char **argv) {
   // Endpoint list declaration
   ulfius_add_endpoint_by_val(&instance, "GET", DATABASE_REQUEST,  NULL, 0, &callback_database, NULL);
   ulfius_add_endpoint_by_val(&instance, "GET", STATUS_REQUEST,    NULL, 0, &callback_status, NULL);
-  ulfius_add_endpoint_by_val(&instance, "GET", ENDPOINT_STATUS_REQUEST,    NULL, 0, &callback_endpoint_status, NULL);
+  ulfius_add_endpoint_by_val(&instance, "GET", ENDPOINT_STATUS_REQUEST, NULL, 0, &callback_endpoint_status, NULL);
+  ulfius_add_endpoint_by_val(&instance, "GET", STATUS_REGISTER_REQUEST, NULL, 0, &callback_status_register, NULL);  
   ulfius_add_endpoint_by_val(&instance, "GET", "*", NULL, 1, &callback_static_file, &mime_types);
   
   // default_endpoint declaration
@@ -313,6 +314,16 @@ int callback_status(const struct _u_request *request, struct _u_response *respon
 int callback_endpoint_status(const struct _u_request *request, struct _u_response *response, void *user_data) {
 
   char *pchResponseBody = msprintf(ENDPOINT_CONTENT);
+
+  ulfius_set_string_body_response(response, HTTP_SC_OK, pchResponseBody);
+  o_free(pchResponseBody);
+
+  return U_CALLBACK_COMPLETE;
+}
+
+int callback_status_register(const struct _u_request *request, struct _u_response *response, void *user_data) {
+
+  char *pchResponseBody = msprintf(REGISTER_STATUS_CONTENT);
 
   ulfius_set_string_body_response(response, HTTP_SC_OK, pchResponseBody);
   o_free(pchResponseBody);
