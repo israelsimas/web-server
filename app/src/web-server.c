@@ -15,6 +15,7 @@
 #include <ulfius.h>
 #include <defTypes.h>
 #include <web-server.h>
+#include <base64.h>
 
 #define THIS_FILE "web-server.c"
 
@@ -112,6 +113,10 @@ int callback_database(const struct _u_request *request, struct _u_response *resp
   ppKeys = u_map_enum_keys(request->map_url);
 
   if (ppKeys[0]) {
+
+    char *pchQuery;
+    
+    pchQuery = b64_decode(ppKeys[0], strlen(ppKeys[0]));
 
     if (0 == o_strcmp("U0VMRUNUIFNZU1Bob25lTGFuZ3VhZ2UgRlJPTSBUQUJfU1lTVEVNX1BIT05F", ppKeys[0])) {
       pchResponseBody = msprintf(JSON1_CONTENT);
