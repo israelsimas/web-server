@@ -16,8 +16,12 @@
 #include <defTypes.h>
 #include <web-server.h>
 #include <base64.h>
+#include <misc.h>
+#include <hoel.h>
 
 #define THIS_FILE "web-server.c"
+
+struct _h_connection *connDB;
 
 char *readFile(const char *pchFilename) {
 
@@ -90,6 +94,12 @@ int main(int argc, char **argv) {
     // Open an http connection
     status = ulfius_start_framework(&instance);
   }
+
+  connDB = h_connect_sqlite(DATABASE_PATH);
+  if (!connDB) {
+    LOG_ERROR("Database unreacheable");
+    return(1);
+  }
   
   if (status == SUCCESS) {
     
@@ -101,8 +111,41 @@ int main(int argc, char **argv) {
    
   ulfius_stop_framework(&instance);
   ulfius_clean_instance(&instance);
+  h_close_db(connDB);
   
   return 0;
+}
+
+void print_result(struct _h_result result) {
+  int col, row, i;
+  printf("rows: %u, col: %u\n", result.nb_rows, result.nb_columns);
+  for (row = 0; row<result.nb_rows; row++) {
+    for (col=0; col<result.nb_columns; col++) {
+      switch(result.data[row][col].type) {
+        case HOEL_COL_TYPE_INT:
+          printf("| %d ", ((struct _h_type_int *)result.data[row][col].t_data)->value);
+          break;
+        case HOEL_COL_TYPE_DOUBLE:
+          printf("| %f ", ((struct _h_type_double *)result.data[row][col].t_data)->value);
+          break;
+        case HOEL_COL_TYPE_TEXT:
+          printf("| %s ", ((struct _h_type_text *)result.data[row][col].t_data)->value);
+          break;
+        case HOEL_COL_TYPE_BLOB:
+          for (i=0; i<((struct _h_type_blob *)result.data[row][col].t_data)->length; i++) {
+            printf("%c", *((char*)(((struct _h_type_blob *)result.data[row][col].t_data)->value+i)));
+            if (i%80 == 0 && i>0) {
+              printf("\n");
+            }
+          }
+          break;
+        case HOEL_COL_TYPE_NULL:
+          printf("| null ");
+          break;
+      }
+    }
+    printf("|\n");
+  }
 }
 
 int callback_database(const struct _u_request *request, struct _u_response *response, void *user_data) {
@@ -118,17 +161,37 @@ int callback_database(const struct _u_request *request, struct _u_response *resp
     
     pchQuery = b64_decode(ppKeys[0], strlen(ppKeys[0]));
 
-    if (0 == o_strcmp("U0VMRUNUIFNZU1Bob25lTGFuZ3VhZ2UgRlJPTSBUQUJfU1lTVEVNX1BIT05F", ppKeys[0])) {
-      pchResponseBody = msprintf(JSON1_CONTENT);
-    } else if (0 == o_strcmp("U0VMRUNUIFNZU1RpbWVNYW51YWwsU1lTVGltZURhdGUsU1lTVGltZUhvdXIsU1lTVGltZUZvcm1hdCxTWVNUaW1lRGF0ZUZvcm1hdCxTWVNUaW1lVXBkYXRlSW50ZXJ2YWwsU1lTVGltZUVuYWJsZU5UUCxTWVNUaW1lVGltZVpvbmUsU1lTVGltZURheWxpZ3RoU2F2aW5nLFNZU1RpbWVOVFBGaXJzdEFkZHJlc3MsU1lTVGltZU5UUFNlY29uZEFkZHJlc3MsaG91clN0YXJ0LGhvdXJTdG9wLGRheVN0YXJ0LGRheVN0b3Asd2Vla0RheVN0YXJ0LHdlZWtEYXlTdG9wLHdlZWtTdGFydCx3ZWVrU3RvcCxtb250aFN0YXJ0LG1vbnRoU3RvcCxvZmZzZXREYXlsaWdodFNhdmluZyBGUk9NIFRBQl9TWVNURU1fVElNRTs", ppKeys[0])) {
-      pchResponseBody = msprintf(JSON2_CONTENT);
+    if (pchQuery) {
+
+      int status;
+      json_t *j_result;
+      char *pchQueryDb = msprintf(pchQuery);
+
+      status = h_query_select_json(connDB, pchQueryDb, &j_result);
+      if (status == SUCCESS) {
+       
+        LOG("SUCCESS");
+        
+        pchResponseBody = json_dumps(j_result, JSON_INDENT(2));
+
+        // Deallocate data result
+        json_decref(j_result);
+      } else {
+        LOG("ERROR");
+      }
+
+      o_free(pchQuery);
     }
+
+  } 
+
+  if (pchResponseBody) {
+    ulfius_set_string_body_response(response, HTTP_SC_OK, pchResponseBody);
   } else {
     pchResponseBody = msprintf("Indefined");
   }
-
-  ulfius_set_string_body_response(response, HTTP_SC_OK, pchResponseBody);
-  o_free(pchResponseBody);
+  
+  o_free(pchResponseBody);  
 
   return U_CALLBACK_COMPLETE;
 }
