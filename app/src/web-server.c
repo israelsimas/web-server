@@ -207,11 +207,48 @@ static void setQuerys(char *pchQueryList, char *pchQuerys[], int *pLenQuerys) {
   *pLenQuerys = wNumQuerys;
 }
 
+static char *concatResultsToString(json_t *pListResult[], int lenQuerys) {
+
+  int i, lenTotal = 0;
+  char *pchresults[NUM_MAX_QUERY_COMANDS];  
+  char *pchResultJson = NULL;
+
+  if (!lenQuerys) {
+    return NULL;
+  }
+
+  for (i = 0; i < lenQuerys; i++) {
+    pchresults[i] = json_dumps(pListResult[i], JSON_INDENT(2));
+    lenTotal += o_strlen(pchresults[i]);
+  }
+
+  pchResultJson = o_malloc(lenTotal + HEADER_JSON_DB);
+  memset(pchResultJson, 0, (lenTotal + HEADER_JSON_DB));
+
+  strcpy(pchResultJson, "[\n ");
+  for (i = 0; i < lenQuerys; i++) {
+    if (i > 0) {
+      strcat(pchResultJson, ",\n");
+    }
+    strcat(pchResultJson, "{\n   \"rows\": \n");
+    strcat(pchResultJson, pchresults[i]);
+    strcat(pchResultJson, "\n }");
+  }
+  strcat(pchResultJson, "\n ]");
+
+  for (i = 0; i < lenQuerys; i++) {
+    o_free(pchresults[i]);
+  }
+
+  return pchResultJson;
+}
+
 int callback_database(const struct _u_request *request, struct _u_response *response, void *user_data) {
 
   char *pchResponseBody = NULL;
   const char **ppKeys;
   char *pchQuerys[NUM_MAX_QUERY_COMANDS];
+  json_t *pListResult[NUM_MAX_QUERY_COMANDS] = { NULL };
   int lenQuerys;
 
   ppKeys = u_map_enum_keys(request->map_url);
@@ -222,33 +259,32 @@ int callback_database(const struct _u_request *request, struct _u_response *resp
 
     pchQueryDecode = b64_decode(ppKeys[0], strlen(ppKeys[0]));
     setQuerys(pchQueryDecode, pchQuerys, &lenQuerys);
+    o_free(pchQueryDecode);
+
     if (validCommands(pchQuerys, lenQuerys)) {            
-      int status;
-      json_t *j_result;
-      char *pchQueryDb = msprintf(pchQueryDecode);
+      int status, i;
+      BOOL bValidresults = TRUE;
 
-      LOG("VALID COMAND");
-
-      // status = h_query_select_json(connDB, pchQueryDb, &j_result);
-      status = h_execute_query_json(connDB, pchQueryDb, &j_result);
-      if (status == SUCCESS) {      
-        pchResponseBody = json_dumps(j_result, JSON_INDENT(2));
-        // Deallocate data result
-        json_decref(j_result);
-      } else {
-        LOG("Invalid command to database");
+      for (i = 0; i < lenQuerys; i++) {
+        status = h_execute_query_json(connDB, pchQuerys[i], &pListResult[i]); 
+        if (status != SUCCESS) {      
+          bValidresults = FALSE;
+          LOG_ERROR("Invalid command to database: %s", pchQuerys[i]);
+          break;
+        }     
       }
 
-      o_free(pchQueryDecode);
-
+      pchResponseBody = concatResultsToString(pListResult, lenQuerys);
+      
     } else {
-      LOG("INVALID COMAND");
+      LOG_ERROR("Invalid commands to database");
     }
 
     if (lenQuerys > 0) {
       int i;
       for (i = 0; i < lenQuerys; i++) {
         o_free(pchQuerys[i]);
+        json_decref(pListResult[i]);
       }
     }
   } 

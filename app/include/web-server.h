@@ -41,6 +41,8 @@
 #define NUM_MAX_QUERY_COMANDS       10
 #define NUMBER_WHITE_LIST_COMMANDS  7
 
+#define HEADER_JSON_DB  100
+
 #define JSON1_CONTENT "[\n   {\n   \"rows\":[\n               {\n         \"SYSPhoneLanguage\":\"pt_BR\"\n         }\n      ]\n   }\n]"
 #define JSON2_CONTENT "[\
    {\
