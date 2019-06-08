@@ -77,6 +77,7 @@ int main(int argc, char **argv) {
   // Endpoint list declaration
   ulfius_add_endpoint_by_val(&instance, "GET", DATABASE_REQUEST,  NULL, 0, &callback_database, NULL);
   ulfius_add_endpoint_by_val(&instance, "GET", STATUS_REQUEST,    NULL, 0, &callback_status, NULL);
+  ulfius_add_endpoint_by_val(&instance, "GET", ENDPOINT_STATUS_REQUEST,    NULL, 0, &callback_endpoint_status, NULL);
   ulfius_add_endpoint_by_val(&instance, "GET", "*", NULL, 1, &callback_static_file, &mime_types);
   
   // default_endpoint declaration
@@ -183,16 +184,25 @@ static void setQuerys(char *pchQueryList, char *pchQuerys[], int *pLenQuerys) {
 
   char *pchToken = NULL;
   int wNumQuerys = 0;
+  char *pchList = NULL;
 
   *pLenQuerys = 0;
 
+  if (!pchQueryList) {
+    return;
+  }
+
+  pchList = msprintf(pchQueryList);
+
   	/* Parser para recuperar tabelas individualemnte */
-	pchToken = strtok(pchQueryList, ";");
+	pchToken = strtok(pchList, ";");
 	while ((pchToken != NULL) && (wNumQuerys < NUM_MAX_QUERY_COMANDS)) {
     pchQuerys[wNumQuerys] = msprintf("%s;", pchToken);
 		wNumQuerys++;
 		pchToken = strtok(NULL, ";");
 	}
+
+  o_free(pchList);
 
   *pLenQuerys = wNumQuerys;
 }
@@ -209,34 +219,30 @@ int callback_database(const struct _u_request *request, struct _u_response *resp
   if (ppKeys[0]) {
 
     char *pchQueryDecode;
-    char *pchTest;
 
     pchQueryDecode = b64_decode(ppKeys[0], strlen(ppKeys[0]));
-    pchTest = msprintf(pchQueryDecode);
-
-    setQuerys(pchTest, pchQuerys, &lenQuerys);
-    if (validCommands(pchQuerys, lenQuerys)) {
-      LOG("VALID COMAND");
-    } else {
-      LOG("INVALID COMAND");
-    }
-
-    if (pchQueryDecode) {
-
+    setQuerys(pchQueryDecode, pchQuerys, &lenQuerys);
+    if (validCommands(pchQuerys, lenQuerys)) {            
       int status;
       json_t *j_result;
       char *pchQueryDb = msprintf(pchQueryDecode);
 
-      status = h_query_select_json(connDB, pchQueryDb, &j_result);
+      LOG("VALID COMAND");
+
+      // status = h_query_select_json(connDB, pchQueryDb, &j_result);
+      status = h_execute_query_json(connDB, pchQueryDb, &j_result);
       if (status == SUCCESS) {      
         pchResponseBody = json_dumps(j_result, JSON_INDENT(2));
         // Deallocate data result
         json_decref(j_result);
       } else {
-        LOG("ERROR");
+        LOG("Invalid command to database");
       }
 
       o_free(pchQueryDecode);
+
+    } else {
+      LOG("INVALID COMAND");
     }
 
     if (lenQuerys > 0) {
@@ -261,6 +267,16 @@ int callback_database(const struct _u_request *request, struct _u_response *resp
 int callback_status(const struct _u_request *request, struct _u_response *response, void *user_data) {
 
   char *pchResponseBody = msprintf(STATUS_CONTENT);
+
+  ulfius_set_string_body_response(response, HTTP_SC_OK, pchResponseBody);
+  o_free(pchResponseBody);
+
+  return U_CALLBACK_COMPLETE;
+}
+
+int callback_endpoint_status(const struct _u_request *request, struct _u_response *response, void *user_data) {
+
+  char *pchResponseBody = msprintf(ENDPOINT_CONTENT);
 
   ulfius_set_string_body_response(response, HTTP_SC_OK, pchResponseBody);
   o_free(pchResponseBody);
