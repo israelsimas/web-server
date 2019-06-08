@@ -22,6 +22,7 @@
 #define THIS_FILE "web-server.c"
 
 struct _h_connection *connDB;
+char *pchWhitelist[NUMBER_WHITE_LIST_COMMANDS] = {"select", "update", "insert", "delete", "begin transaction", "end transaction", "commit"};
 
 char *readFile(const char *pchFilename) {
 
@@ -148,41 +149,102 @@ void print_result(struct _h_result result) {
   }
 }
 
+static BOOL isValidComand(const char *pchQuery) {
+  
+  int i;
+
+  for (i = 0; i < NUMBER_WHITE_LIST_COMMANDS; i++) {
+    if (o_strcasestr(pchQuery, pchWhitelist[i])) {
+      return TRUE;
+    }
+  }
+
+  return FALSE;
+}
+
+static BOOL validCommands(char *pchQuerys[], int lenQuerys) {
+
+  int i;
+
+  if (lenQuerys == 0) {
+    return FALSE;
+  }
+
+  for (i =0; i< lenQuerys; i++) {
+    if (!isValidComand(pchQuerys[i])) {
+      return FALSE;
+    }
+  }
+
+  return TRUE;
+}
+
+static void setQuerys(char *pchQueryList, char *pchQuerys[], int *pLenQuerys) {
+
+  char *pchToken = NULL;
+  int wNumQuerys = 0;
+
+  *pLenQuerys = 0;
+
+  	/* Parser para recuperar tabelas individualemnte */
+	pchToken = strtok(pchQueryList, ";");
+	while ((pchToken != NULL) && (wNumQuerys < NUM_MAX_QUERY_COMANDS)) {
+    pchQuerys[wNumQuerys] = msprintf("%s;", pchToken);
+		wNumQuerys++;
+		pchToken = strtok(NULL, ";");
+	}
+
+  *pLenQuerys = wNumQuerys;
+}
+
 int callback_database(const struct _u_request *request, struct _u_response *response, void *user_data) {
 
   char *pchResponseBody = NULL;
   const char **ppKeys;
+  char *pchQuerys[NUM_MAX_QUERY_COMANDS];
+  int lenQuerys;
 
   ppKeys = u_map_enum_keys(request->map_url);
 
   if (ppKeys[0]) {
 
-    char *pchQuery;
-    
-    pchQuery = b64_decode(ppKeys[0], strlen(ppKeys[0]));
+    char *pchQueryDecode;
+    char *pchTest;
 
-    if (pchQuery) {
+    pchQueryDecode = b64_decode(ppKeys[0], strlen(ppKeys[0]));
+    pchTest = msprintf(pchQueryDecode);
+
+    setQuerys(pchTest, pchQuerys, &lenQuerys);
+    if (validCommands(pchQuerys, lenQuerys)) {
+      LOG("VALID COMAND");
+    } else {
+      LOG("INVALID COMAND");
+    }
+
+    if (pchQueryDecode) {
 
       int status;
       json_t *j_result;
-      char *pchQueryDb = msprintf(pchQuery);
+      char *pchQueryDb = msprintf(pchQueryDecode);
 
       status = h_query_select_json(connDB, pchQueryDb, &j_result);
-      if (status == SUCCESS) {
-       
-        LOG("SUCCESS");
-        
+      if (status == SUCCESS) {      
         pchResponseBody = json_dumps(j_result, JSON_INDENT(2));
-
         // Deallocate data result
         json_decref(j_result);
       } else {
         LOG("ERROR");
       }
 
-      o_free(pchQuery);
+      o_free(pchQueryDecode);
     }
 
+    if (lenQuerys > 0) {
+      int i;
+      for (i = 0; i < lenQuerys; i++) {
+        o_free(pchQuerys[i]);
+      }
+    }
   } 
 
   if (pchResponseBody) {

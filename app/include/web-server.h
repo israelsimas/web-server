@@ -26,6 +26,7 @@
 
 #define POST_SIZE_MAX   1024
 #define PORT_DEFAULT    8080
+
 #define STATIC_FOLDER   "/var/www"
 #define INDEX_HTML      "/index.html"
 
@@ -35,6 +36,9 @@
 #define STATUS_REQUEST    "/status.cgi"
 
 #define NOT_FOUND_MESSAGE "Page not found, do what you want"
+
+#define NUM_MAX_QUERY_COMANDS       10
+#define NUMBER_WHITE_LIST_COMMANDS  7
 
 #define JSON1_CONTENT "[\n   {\n   \"rows\":[\n               {\n         \"SYSPhoneLanguage\":\"pt_BR\"\n         }\n      ]\n   }\n]"
 #define JSON2_CONTENT "[\
