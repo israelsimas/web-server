@@ -342,23 +342,41 @@ const char *getFilenameExt(const char *pchPath) {
   }
 }
 
+BOOL isGzip(const char *pchPath) {
+
+  const char *pchDot = o_strstr(pchPath, ".gz");
+
+  if (pchDot) {
+    return TRUE;
+  } else {
+    return FALSE;
+  }
+}
+
 int callback_static_file(const struct _u_request *request, struct _u_response *response, void *user_data) {
 
   void *pchBuffer = NULL;
   long length;
   FILE *pFile = NULL;
-  char *pchFilePath = msprintf(TEMPLATE_FILE_NAME_PATH, STATIC_FOLDER, request->http_url);
+  char *pchFilePath = msprintf(TEMPLATE_FILE_NAME_GZIP_PATH, STATIC_FOLDER, request->http_url);
   const char *pchContentType;
   BOOL bFoundFile = FALSE;
 
-  if (access(pchFilePath, SUCCESS) != ERROR) {
-
-    if ((1 == o_strlen(request->http_url)) && (0 == o_strcmp("/", request->http_url))) {
-      o_free(pchFilePath);
-      pchFilePath = msprintf(TEMPLATE_FILE_NAME_PATH, STATIC_FOLDER, INDEX_HTML);
-    }
-
+  if (access(pchFilePath, SUCCESS) != ERROR) { // gzip text
     bFoundFile = TRUE;
+  } else { // plain text
+    
+    o_free(pchFilePath);
+    pchFilePath = msprintf(TEMPLATE_FILE_NAME_PATH, STATIC_FOLDER, request->http_url);
+    if (access(pchFilePath, SUCCESS) != ERROR) {
+
+      if ((1 == o_strlen(request->http_url)) && (0 == o_strcmp("/", request->http_url))) {
+        o_free(pchFilePath);
+        pchFilePath = msprintf(TEMPLATE_FILE_NAME_PATH, STATIC_FOLDER, INDEX_HTML);
+      }
+
+      bFoundFile = TRUE;
+    }
   } 
   
   if (bFoundFile) {
@@ -376,10 +394,16 @@ int callback_static_file(const struct _u_request *request, struct _u_response *r
     }
 
     if (pchBuffer) {
-      pchContentType = u_map_get((struct _u_map *)user_data, getFilenameExt(pchFilePath));
+      
+      if (isGzip(pchFilePath)) {
+        u_map_put(response->map_header, "Content-Encoding", "gzip");
+      } else {
+        pchContentType = u_map_get((struct _u_map *)user_data, getFilenameExt(pchFilePath));
+      }
+      
       response->binary_body        = pchBuffer;
       response->binary_body_length = length;
-      u_map_put(response->map_header, "Content-Type", pchContentType);
+      
       response->status = HTTP_SC_OK;
     } else {
       response->status = HTTP_SC_NOT_FOUND;

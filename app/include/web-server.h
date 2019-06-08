@@ -30,6 +30,7 @@
 #define STATIC_FOLDER   "/var/www"
 #define INDEX_HTML      "/index.html"
 
+#define TEMPLATE_FILE_NAME_GZIP_PATH   "%s%s.gz"
 #define TEMPLATE_FILE_NAME_PATH   "%s%s"
 
 #define DATABASE_REQUEST  "/db.cgi"
