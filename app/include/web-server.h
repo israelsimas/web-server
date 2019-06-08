@@ -16,21 +16,26 @@
 /**************************************************************************
  * INCLUDES
  **************************************************************************/
-
+#include <syslog.h>
 
 /**************************************************************************
  * DEFINITIONS
  **************************************************************************/
 
-#define PORT          8080
+#define PORT_DEFAULT  8080
 #define PREFIX        "/test"
 #define PREFIXJSON    "/testjson"
 #define PREFIXCOOKIE  "/testcookie"
 #define STATIC_FOLDER "/var/www"
+#define INDEX_HTML    "/index.html"
+#define TEMPLATE_FILE_NAME_PATH "%s%s"
 
-#define JSON1_URL "/db.cgi"
-#define JSON2_URL "/db.cgi"
-#define JSON3_URL "/status.cgi"
+#define POST_SIZE_MAX 1024
+
+#define DATABASE_REQUEST  "/db.cgi"
+#define STATUS_REQUEST    "/status.cgi"
+
+#define NOT_FOUND_MESSAGE "Page not found, do what you want"
 
 #define JSON1_CONTENT "[\n   {\n   \"rows\":[\n               {\n         \"SYSPhoneLanguage\":\"pt_BR\"\n         }\n      ]\n   }\n]"
 #define JSON2_CONTENT "[\
@@ -62,7 +67,7 @@
    }\
 ]"
 
-#define JSON3_CONTENT "{\n\
+#define STATUS_CONTENT "{\n\
 \"account\":   {\n\
    \"user4\":\"0\",\n\
    \"user3\":\"0\",\n\
@@ -103,32 +108,138 @@
 \"branch\":\"D\"\n\
 }"
 
+#define SYSLOG_NAME			"web-server"
+#define LOG_FACILITY    LOG_LOCAL4
+#define OPEN_LOG 			  openlog(SYSLOG_NAME, 0, LOG_FACILITY);
+
+#define LOG(str,...)      	        PRINT_LOG((LOG_DEBUG | LOG_FACILITY),str,##__VA_ARGS__)
+#define LOG_ERROR(str,...)          PRINT_ERROR_LOG(LOG_ERR,str,##__VA_ARGS__)
+#define LOG_ERROR_ASSERT(str,...)   PRINT_ERROR_ASSERT_LOG(LOG_ERR,str,##__VA_ARGS__)
+
+#ifdef PLATFORM_X86 // SYSLOG or PRINTF
+  #define PRINT_LOG(out,str,...)               syslog(out, "%s | %s() | "str" | %d",THIS_FILE,__FUNCTION__,##__VA_ARGS__,__LINE__)
+  #define PRINT_ERROR_LOG(out,str,...)         syslog(out, "## %s | %s() | "str" | %d",THIS_FILE,__FUNCTION__,##__VA_ARGS__,__LINE__)
+  #define PRINT_ERROR_ASSERT_LOG(out,str,...)  syslog(out, "## %s | %s() | "str" | %d",THIS_FILE,__FUNCTION__,##__VA_ARGS__,__LINE__); ASSERT(0)
+#else
+	#define PRINT_LOG(out,str,...)                printf("%s | %s() | "str" | %d\n",THIS_FILE,__FUNCTION__,##__VA_ARGS__,__LINE__)
+  #define PRINT_ERROR_LOG(out,str,...)          printf("## %s | %s() | "str" | %d\n",THIS_FILE,__FUNCTION__,##__VA_ARGS__,__LINE__)
+  #define PRINT_ERROR_ASSERT_LOG(out,str,...)   printf("## %s | %s() | "str" | %d\n",THIS_FILE,__FUNCTION__,##__VA_ARGS__,__LINE__); ASSERT(0)
+#endif
+
+#define TRUE  1
+#define FALSE 0
+
+#define ERROR	  -1
+#define SUCCESS	0
+
+#define POINTER_NULL    '\0'
+
+/**************************************************************************
+ * TYPEDEFS
+ **************************************************************************/
+
+/**
+ * 	@enum E_HTTP_STATUS_CODE
+ */
+typedef enum {
+	HTTP_SC_TRYING 												  = 100,
+	HTTP_SC_RINGING 												= 180,
+	HTTP_SC_CALL_BEING_FORWARDED 					  = 181,
+	HTTP_SC_QUEUED 												  = 182,
+	HTTP_SC_PROGRESS 											  = 183,
+
+	HTTP_SC_OK 														  = 200,
+	HTTP_SC_ACCEPTED 											  = 202,
+
+	HTTP_SC_MULTIPLE_CHOICES 							  = 300,
+	HTTP_SC_MOVED_PERMANENTLY 							= 301,
+	HTTP_SC_MOVED_TEMPORARILY 							= 302,
+	HTTP_SC_USE_PROXY 											= 305,
+	HTTP_SC_ALTERNATIVE_SERVICE 						= 380,
+
+	HTTP_SC_BAD_REQUEST 										= 400,
+	HTTP_SC_UNAUTHORIZED 									  = 401,
+	HTTP_SC_PAYMENT_REQUIRED 							  = 402,
+	HTTP_SC_FORBIDDEN 											= 403,
+	HTTP_SC_NOT_FOUND 											= 404,
+	HTTP_SC_METHOD_NOT_ALLOWED 						  = 405,
+	HTTP_SC_NOT_ACCEPTABLE 								  = 406,
+	HTTP_SC_PROXY_AUTHENTICATION_REQUIRED 	= 407,
+	HTTP_SC_REQUEST_TIMEOUT 								= 408,
+	HTTP_SC_GONE 													  = 410,
+	HTTP_SC_REQUEST_ENTITY_TOO_LARGE 		 	  = 413,
+	HTTP_SC_REQUEST_URI_TOO_LONG 				 	  = 414,
+	HTTP_SC_UNSUPPORTED_MEDIA_TYPE 				  = 415,
+	HTTP_SC_UNSUPPORTED_URI_SCHEME 				  = 416,
+	HTTP_SC_BAD_EXTENSION 									= 420,
+	HTTP_SC_EXTENSION_REQUIRED 						  = 421,
+	HTTP_SC_SESSION_TIMER_TOO_SMALL 				= 422,
+	HTTP_SC_INTERVAL_TOO_BRIEF 						  = 423,
+	HTTP_SC_TEMPORARILY_UNAVAILABLE 				= 480,
+	HTTP_SC_CALL_TSX_DOES_NOT_EXIST 				= 481,
+	HTTP_SC_LOOP_DETECTED 									= 482,
+	HTTP_SC_TOO_MANY_HOPS 									= 483,
+	HTTP_SC_ADDRESS_INCOMPLETE 						  = 484,
+	HTTP_SC_AMBIGUOUS 											= 485,
+	HTTP_SC_BUSY_HERE 											= 486,
+	HTTP_SC_REQUEST_TERMINATED 						  = 487,
+	HTTP_SC_NOT_ACCEPTABLE_HERE 						= 488,
+	HTTP_SC_BAD_EVENT 											= 489,
+	HTTP_SC_REQUEST_UPDATED 								= 490,
+	HTTP_SC_REQUEST_PENDING 								= 491,
+	HTTP_SC_UNDECIPHERABLE 								  = 493,
+
+	HTTP_SC_INTERNAL_SERVER_ERROR 					= 500,
+	HTTP_SC_NOT_IMPLEMENTED 								= 501,
+	HTTP_SC_BAD_GATEWAY 										= 502,
+	HTTP_SC_SERVICE_UNAVAILABLE 						= 503,
+	HTTP_SC_SERVER_TIMEOUT 								  = 504,
+	HTTP_SC_VERSION_NOT_SUPPORTED 					= 505,
+	HTTP_SC_MESSAGE_TOO_LARGE 							= 513,
+	HTTP_SC_PRECONDITION_FAILURE 					  = 580,
+
+	HTTP_SC_BUSY_EVERYWHERE 								= 600,
+	HTTP_SC_DECLINE 												= 603,
+	HTTP_SC_DOES_NOT_EXIST_ANYWHERE 				= 604,
+	HTTP_SC_NOT_ACCEPTABLE_ANYWHERE 				= 606,
+
+	HTTP_SC_TSX_TIMEOUT 										= HTTP_SC_REQUEST_TIMEOUT,
+	HTTP_SC_TSX_TRANSPORT_ERROR 						= HTTP_SC_SERVICE_UNAVAILABLE,
+
+} E_HTTP_STATUS_CODE;
+
 /**************************************************************************
  * INTERNAL FUNCTIONS
  **************************************************************************/
 
-/**
- * callback functions declaration
+/*
+ * Callback function used to get data from database
+ */ 
+int callback_database(const struct _u_request *request, struct _u_response *response, void *user_data);
+
+/*
+ * Callback function used to get status system
+ */ 
+int callback_status(const struct _u_request *request, struct _u_response *response, void *user_data);
+
+/*
+ * Callback function used to serve static files that are present in the static folder
+ */ 
+int callback_static_file(const struct _u_request *request, struct _u_response *response, void *user_data);
+
+/*
+ * Default callback function called if no endpoint has a match
  */
-int callback_get_test (const struct _u_request * request, struct _u_response * response, void * user_data);
+int callback_default(const struct _u_request *request, struct _u_response *response, void *user_data);
 
-int callback_get_empty_response (const struct _u_request * request, struct _u_response * response, void * user_data);
+/*
+ * Return the filename extension
+ */
+const char *getFilenameExt(const char *pchPath);
 
-int callback_post_test (const struct _u_request * request, struct _u_response * response, void * user_data);
-
-int callback_all_test_foo (const struct _u_request * request, struct _u_response * response, void * user_data);
-
-int callback_get_cookietest (const struct _u_request * request, struct _u_response * response, void * user_data);
-
-///////////////
-int callback_json1_test(const struct _u_request * request, struct _u_response * response, void * user_data);
-int callback_json2_test(const struct _u_request * request, struct _u_response * response, void * user_data);
-int callback_json3_test(const struct _u_request * request, struct _u_response * response, void * user_data);
-///////////////
-
-// Callback function used to serve static files that are present in the static folder
-int callback_static_file (const struct _u_request * request, struct _u_response * response, void * user_data);
-
-int callback_default (const struct _u_request * request, struct _u_response * response, void * user_data);
+/*
+ * Return content from a file
+ */
+char *readFile(const char *pchFilename);
 
 #endif
