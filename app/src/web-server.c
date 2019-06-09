@@ -275,7 +275,9 @@ int callback_database(const struct _u_request *request, struct _u_response *resp
         }     
       }
 
-      pchResponseBody = concatResultsToString(pListResult, lenQuerys);
+      if (bValidresults) {
+        pchResponseBody = concatResultsToString(pListResult, lenQuerys);
+      }
       
     } else {
       LOG_ERROR("Invalid commands to database");
