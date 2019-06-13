@@ -193,6 +193,14 @@ typedef enum {
 
 } E_HTTP_STATUS_CODE;
 
+typedef struct SYSTEM_GENERAL {
+  char *pchProduct;
+  char *pchBranch;
+  char *pchDatabasePath;
+  char *pchVersion;
+  int accountNumber;
+} SYSTEM_GENERAL;
+
 /**************************************************************************
  * INTERNAL FUNCTIONS
  **************************************************************************/
