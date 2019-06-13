@@ -62,7 +62,13 @@ int main(int argc, char **argv) {
     return(1);
   }
 
-  initSystemGeneral();
+  connDB = h_connect_sqlite(DATABASE_PATH);
+  if (!connDB) {
+    LOG_ERROR("Database unreacheable");
+    return(1);
+  }
+
+  initSystemGeneral(connDB);
   pSystemStatus = getSystemGeneral();
 
   ////////////////////////////
@@ -123,12 +129,6 @@ int main(int argc, char **argv) {
     status = ulfius_start_framework(&instance);
   }
 
-  connDB = h_connect_sqlite(DATABASE_PATH);
-  if (!connDB) {
-    LOG_ERROR("Database unreacheable");
-    return(1);
-  }
-  
   if (status == SUCCESS) {
     
     // Wait for the user to press <enter> on the console to quit the application

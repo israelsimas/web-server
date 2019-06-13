@@ -13,6 +13,7 @@
 #ifndef SYTEM_STATUS_H_
 #define SYTEM_STATUS_H_
 
+#define DEFAULT_INTERFACE "eth0"
 
 /**************************************************************************
  * TYPEDEFS
@@ -29,9 +30,9 @@ typedef struct SYSTEM_GENERAL {
  * INTERNAL FUNCTIONS
  **************************************************************************/
 
-void initSystemGeneral();
+void initSystemGeneral(struct _h_connection *pConn);
 
-SYSTEM_GENERAL* getSystemGeneral();
+SYSTEM_GENERAL *getSystemGeneral();
 
 BOOL getStatusAccount(json_t ** j_result);
 

@@ -18,6 +18,7 @@
 #define THIS_FILE "system-status.c"
 
 SYSTEM_GENERAL systemGeneral;
+struct _h_connection *pConnDB;
 
 static void loadSystemGeneral(SYSTEM_GENERAL *pSystemGeneral) {
 
@@ -28,17 +29,18 @@ static void loadSystemGeneral(SYSTEM_GENERAL *pSystemGeneral) {
 	getConfig(CFG_DATABASE, &pSystemGeneral->pchDatabasePath, TYPE_STRING);
 }
 
-void initSystemGeneral() {
+void initSystemGeneral(struct _h_connection *pConn) {
   openConfig();
   loadSystemGeneral(&systemGeneral);
   closeConfig();
+  pConnDB = pConn;
 }
 
 SYSTEM_GENERAL* getSystemGeneral() {
   return &systemGeneral;
 }
 
-char *getUserAccount(WORD wAccount) {
+static char *getUserAccount(WORD wAccount) {
 
   return "200";
 }
@@ -69,7 +71,31 @@ BOOL getStatusAccount(json_t ** j_result) {
 	return TRUE;
 }
 
+static char *getActiveInterface() {
+  char *pchInterface = NULL;
+  struct _h_result result;
+
+  if (h_query_select(pConnDB, "SELECT VLANActivate, VLANID, VLANAutoEnable, VLANAutoConfigured, VLANAutoID FROM TAB_NET_VLAN", &result) == H_OK) {
+    if (result.nb_rows == 1 && result.nb_columns == 5) {
+
+      if (((struct _h_type_int *)result.data[0][0].t_data)->value == 1) {
+        pchInterface = msprintf("%s.%d", DEFAULT_INTERFACE, ((struct _h_type_int *)result.data[0][1].t_data)->value);
+      } else if ( (((struct _h_type_int *)result.data[0][2].t_data)->value == 1) && (((struct _h_type_int *)result.data[0][3].t_data)->value == 1)) {
+        pchInterface = msprintf("%s.%d", DEFAULT_INTERFACE, ((struct _h_type_int *)result.data[0][4].t_data)->value);
+      }
+    }
+  }
+
+  if (!pchInterface) {
+    pchInterface = o_strdup(DEFAULT_INTERFACE);
+  }
+
+  return pchInterface;
+}
+
 BOOL getStatusNetwork(json_t ** j_result) {
+
+  char *pchInterface = getActiveInterface();
 
 	return TRUE;
 }
