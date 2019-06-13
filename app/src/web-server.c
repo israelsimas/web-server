@@ -20,65 +20,12 @@
 #include <hoel.h>
 #include <config.h>
 #include <jansson.h>
+#include <system-status.h>
 
 #define THIS_FILE "web-server.c"
 
 struct _h_connection *connDB;
 char *pchWhitelist[NUMBER_WHITE_LIST_COMMANDS] = {"select", "update", "insert", "delete", "begin transaction", "end transaction", "commit"};
-SYSTEM_GENERAL systemGeneral;
-
-////////////////////////////////////////////////////////
-
-char *getUserAccount(WORD wAccount) {
-
-  return "200";
-}
-
-BOOL getStatusAccount(SYSTEM_GENERAL *pSystemGeneral, json_t ** j_result) {
-
-	int i;
-  json_t *j_data;
-  char pchUserField[10];
-
-  if (j_result == NULL) {
-    return FALSE;
-  }
-
-  j_data = json_object();
-  if (j_data == NULL) {
-    json_decref(*j_result); 
-    return FALSE;
-  } 
-
-	for (i = 0; i < pSystemGeneral->accountNumber; i++) {
-    sprintf(pchUserField, "user%d", (i+1));
-    json_object_set_new(j_data, pchUserField, json_string(getUserAccount(i)));
-	}
-
-  json_array_append_new(*j_result, j_data);
-
-	return TRUE;
-}
-
-BOOL getStatusNetwork(json_t ** j_result) {
-
-	return TRUE;
-}
-
-BOOL getStatusSystem(SYSTEM_GENERAL *pSystemGeneral, json_t ** j_result) {
-
-	return TRUE;
-}
-
-void loadSystemGeneral(SYSTEM_GENERAL *pSystemGeneral) {
-
-	getConfig(CFG_ACCOUNTS_NUMBER, &pSystemGeneral->accountNumber, TYPE_WORD);
-	getConfig(CFG_PRODUCT, &pSystemGeneral->pchProduct, TYPE_STRING);
-	getConfig(CFG_PRODUCT_VERSION, &pSystemGeneral->pchVersion, TYPE_STRING);
-	getConfig(CFG_BRANCH, &pSystemGeneral->pchBranch, TYPE_STRING);
-	getConfig(CFG_DATABASE, &pSystemGeneral->pchDatabasePath, TYPE_STRING);
-}
-////////////////
 
 char *readFile(const char *pchFilename) {
 
@@ -106,6 +53,7 @@ char *readFile(const char *pchFilename) {
 int main(int argc, char **argv) {
 
   int status;
+  SYSTEM_GENERAL *pSystemStatus;
   
   // Set the framework port number
   struct _u_instance instance;
@@ -114,28 +62,25 @@ int main(int argc, char **argv) {
     return(1);
   }
 
+  initSystemGeneral();
+  pSystemStatus = getSystemGeneral();
+
   ////////////////////////////
   {
     json_t *pResult;
     char *pchResult, *result;
     json_t *json;
 
-    openConfig();
-    loadSystemGeneral(&systemGeneral);
-    closeConfig();
-
     pResult = json_array();
     if (pResult) { 
-      getStatusAccount(&systemGeneral, &pResult);
+      getStatusAccount(&pResult);
       getStatusNetwork(&pResult);
-      getStatusSystem(&systemGeneral, &pResult);
+      getStatusSystem(&pResult);
       pchResult = json_dumps(pResult, JSON_INDENT(2));
 
       printf("pchResult: %s\n", pchResult);    
     }
   }
-  
-
   ////////////////////////////
   
   u_map_put(instance.default_headers, "Access-Control-Allow-Origin", "*");
