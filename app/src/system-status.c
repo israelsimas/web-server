@@ -298,6 +298,8 @@ void get_dns_servers(char **ppchDns1, char **ppchDns2, BOOL isIPv6) {
       }
     }
   }
+
+  pclose(pf);
 }
 
 BOOL getStatusNetwork(json_t **j_result) {
@@ -316,6 +318,9 @@ BOOL getStatusNetwork(json_t **j_result) {
     return FALSE;
   } 
 
+  pchIPv4 = NULL;
+  pchIPv6 = NULL;
+  pchMask = NULL;
   pchDns1 = NULL;
   pchDns2 = NULL; 
   pchInterface = getActiveInterface();
