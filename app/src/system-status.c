@@ -202,6 +202,35 @@ static int getInterfaceType(char *pchIfName, BOOL isIPv6) {
   return interfaceType;
 }
 
+static char *getIfGateway(char *pchIfName, BOOL isIPv6) {
+
+  char *pchGateway = NULL;
+	FILE *pf;
+
+  if (isIPv6) {
+    char *pchComand = msprintf("/sbin/ifconfig %s | ip -6 addr | grep 'inet6 ' | grep 'scope link' | head -1 | awk '{ print $2}'", pchIfName);
+    pf = popen(pchComand, "r");
+    o_free(pchComand);    
+  } else {
+    pf = popen("/sbin/ip route list table default | awk '/default/ { print $3 }'", "r");
+  }
+
+	if (pf) {
+
+		pchGateway = malloc(sizeof(char) * SIZE_STR_GATEWAY);
+		memset(pchGateway, 0, SIZE_STR_GATEWAY);
+		fgets(pchGateway, SIZE_STR_GATEWAY, pf);
+
+		pclose(pf);
+	} 
+
+  if (!pchGateway) {
+    pchGateway = o_strdup("255.255.255.0");  
+  }  
+
+  return pchGateway;
+}
+
 BOOL getStatusNetwork(json_t **j_result) {
 
   json_t *j_data;
@@ -227,7 +256,7 @@ BOOL getStatusNetwork(json_t **j_result) {
 
     json_object_set_new(j_data, "add_ipv4", json_string(pchIPv4));
     json_object_set_new(j_data, "netmask", json_string(pchMask));
-    json_object_set_new(j_data, "gateway_ipv4", json_string("10.1.39.1"));
+    json_object_set_new(j_data, "gateway_ipv4", json_string(getIfGateway(pchInterface, FALSE)));
     json_object_set_new(j_data, "type_ipv4", json_integer(getInterfaceType(pchInterface, FALSE)));
     json_object_set_new(j_data, "dns1_ipv4", json_string("8.8.8.8"));
     json_object_set_new(j_data, "dns2_ipv4", json_string(""));
@@ -248,7 +277,7 @@ BOOL getStatusNetwork(json_t **j_result) {
     char *pchMask = getMaskaddr(pchInterface, AF_INET);
 
     json_object_set_new(j_data, "add_ipv6", json_string(pchIPv6));
-    json_object_set_new(j_data, "gateway_ipv6", json_string("0::0"));
+    json_object_set_new(j_data, "gateway_ipv6", json_string(getIfGateway(pchInterface, FALSE)));
     json_object_set_new(j_data, "type_ipv6", json_integer(getInterfaceType(pchInterface, TRUE)));
     json_object_set_new(j_data, "dns1_ipv6", json_string("0::0"));
     json_object_set_new(j_data, "dns2_ipv6", json_string("0::0"));
