@@ -84,7 +84,6 @@ int main(int argc, char **argv) {
       getStatusSystem(&pResult);
       pchResult = json_dumps(pResult, JSON_INDENT(2));
 
-      printf("pchResult: %s\n", pchResult);    
     }
   }
   ////////////////////////////

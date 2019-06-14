@@ -93,14 +93,109 @@ static char *getActiveInterface() {
   return pchInterface;
 }
 
-BOOL getStatusNetwork(json_t ** j_result) {
+static int getProtocolMode() {
 
-  char *pchInterface = getActiveInterface();
+  int protocolMode = 0;
+  struct _h_result result;
+
+  if (h_query_select(pConnDB, "SELECT ETHProtocolMode FROM TAB_NET_ETH_WAN", &result) == H_OK) {
+    if (result.nb_rows == 1 && result.nb_columns == 1) {
+      protocolMode = ((struct _h_type_int *)result.data[0][0].t_data)->value;
+    }
+  }
+
+  return protocolMode;
+}
+
+BOOL getStatusNetwork(json_t **j_result) {
+
+  json_t *j_data;
+  char *pchInterface;
+  int protocolMode;
+
+  if (j_result == NULL) {
+    return FALSE;
+  }
+
+  j_data = json_object();
+  if (j_data == NULL) {
+    json_decref(*j_result); 
+    return FALSE;
+  } 
+
+  pchInterface = getActiveInterface();
+  protocolMode = getProtocolMode();
+
+  if ((protocolMode == 0) || (protocolMode == 2)) {
+    json_object_set_new(j_data, "add_ipv4", json_string("10.1.39.120"));
+    json_object_set_new(j_data, "netmask", json_string("255.255.255.0"));
+    json_object_set_new(j_data, "gateway_ipv4", json_string("10.1.39.1"));
+    json_object_set_new(j_data, "type_ipv4", json_string("0"));
+    json_object_set_new(j_data, "dns1_ipv4", json_string("8.8.8.8"));
+    json_object_set_new(j_data, "dns2_ipv4", json_string(""));
+  } else {
+    json_object_set_new(j_data, "add_ipv4", json_string(""));
+    json_object_set_new(j_data, "netmask", json_string(""));
+    json_object_set_new(j_data, "gateway_ipv4", json_string(""));
+    json_object_set_new(j_data, "type_ipv4", json_string(""));
+    json_object_set_new(j_data, "dns1_ipv4", json_string(""));
+    json_object_set_new(j_data, "dns2_ipv4", json_string(""));
+  }
+
+  if ((protocolMode == 1) || (protocolMode == 2)) {
+    json_object_set_new(j_data, "add_ipv6", json_string("0::0"));
+    json_object_set_new(j_data, "gateway_ipv6", json_string("0::0"));
+    json_object_set_new(j_data, "type_ipv6", json_string("0"));
+    json_object_set_new(j_data, "dns1_ipv6", json_string("0::0"));
+    json_object_set_new(j_data, "dns2_ipv6", json_string("0::0"));
+  } else {
+    json_object_set_new(j_data, "add_ipv6", json_string(""));
+    json_object_set_new(j_data, "gateway_ipv6", json_string(""));
+    json_object_set_new(j_data, "type_ipv6", json_string(""));
+    json_object_set_new(j_data, "dns1_ipv6", json_string(""));
+    json_object_set_new(j_data, "dns2_ipv6", json_string(""));
+  }  
+
+  json_object_set_new(j_data, "mac", json_string("00:1A:3F:01:02:03"));
+
+  json_object_set_new(j_data, "prot_mode", json_integer(protocolMode));
+
+  json_array_append_new(*j_result, j_data);
+
+  o_free(pchInterface);
 
 	return TRUE;
 }
 
-BOOL getStatusSystem(json_t ** j_result) {
+BOOL getStatusSystem(json_t **j_result) {
+
+
+  json_t *j_data;
+  char *pchInterface;
+  int protocolMode;
+
+  if (j_result == NULL) {
+    return FALSE;
+  }
+
+  j_data = json_object();
+  if (j_data == NULL) {
+    json_decref(*j_result); 
+    return FALSE;
+  } 
+
+  json_object_set_new(j_data, "tmp_op", json_string("12131"));
+  json_object_set_new(j_data, "tmp_ntp", json_string(""));
+  json_object_set_new(j_data, "date", json_string(""));
+  json_object_set_new(j_data, "time24h", json_string(""));
+  json_object_set_new(j_data, "time12h", json_string(""));
+  json_object_set_new(j_data, "hwVersion", json_string("1"));
+  json_object_set_new(j_data, "swMajor", json_string("1"));
+  json_object_set_new(j_data, "swMinor", json_string("2"));  
+  json_object_set_new(j_data, "swPatch", json_string("3"));  
+  json_object_set_new(j_data, "freePartition", json_string("1"));  
+
+  json_array_append_new(*j_result, j_data);
 
 	return TRUE;
 }
