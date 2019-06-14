@@ -19,6 +19,7 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <netdb.h>
+#include <time.h>
 
 #define THIS_FILE "system-status.c"
 
@@ -393,6 +394,9 @@ BOOL getStatusSystem(json_t **j_result) {
 
   json_t *j_data;
   FILE *pf; 
+  time_t t = time(NULL);
+  struct tm tm = *localtime(&t);
+  char pchDate[SIZE_STR_STATUS_SYS];
   char pchCmdRet[SIZE_STR_STATUS_SYS];
 
   if (j_result == NULL) {
@@ -428,7 +432,7 @@ BOOL getStatusSystem(json_t **j_result) {
   } 
 
    pf = popen("fw_printenv rootfspart | cut -d\"=\" -f2'", "r");
-  if (pf) {
+   if (pf) {
 
     int partition;
 
@@ -446,10 +450,16 @@ BOOL getStatusSystem(json_t **j_result) {
     pclose(pf);
   }  
 
-  json_object_set_new(j_data, "tmp_ntp", json_string(""));
-  json_object_set_new(j_data, "date", json_string(""));
-  json_object_set_new(j_data, "time24h", json_string(""));
-  json_object_set_new(j_data, "time12h", json_string(""));
+  json_object_set_new(j_data, "tmp_ntp", json_real(tm.tm_gmtoff));
+
+  sprintf(pchDate, "%d/%d/%d", tm.tm_mday, tm.tm_mon, tm.tm_year);
+  json_object_set_new(j_data, "date", json_string(pchDate));
+
+  sprintf(pchDate, "%d:%d:%d", tm.tm_hour, tm.tm_min, tm.tm_sec);
+  json_object_set_new(j_data, "time24h", json_string(pchDate));
+
+  sprintf(pchDate, "%d:%d:%d", tm.tm_hour/12, tm.tm_min, tm.tm_sec);
+  json_object_set_new(j_data, "time12h", json_string(pchDate));
 
   json_object_set_new(j_data, "swMajor", json_string(systemGeneral.pchswMajor));
   json_object_set_new(j_data, "swMinor", json_string(systemGeneral.swMinor));  
