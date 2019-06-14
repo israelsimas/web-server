@@ -14,6 +14,7 @@
 #define SYTEM_STATUS_H_
 
 #define DEFAULT_INTERFACE "eth0"
+#define INVALID_IP        "0"
 
 /**************************************************************************
  * TYPEDEFS

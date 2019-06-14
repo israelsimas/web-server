@@ -14,6 +14,11 @@
 #include <config.h>
 #include <jansson.h>
 #include <system-status.h>
+#include <ifaddrs.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <netdb.h>
 
 #define THIS_FILE "system-status.c"
 
@@ -107,6 +112,33 @@ static int getProtocolMode() {
   return protocolMode;
 }
 
+static char *getIfaddr(char *pchIfName, int typeINET) {
+	struct ifaddrs *ifap, *ifa;
+  char addr[INET6_ADDRSTRLEN];
+  char *ret_addr;
+
+  getifaddrs (&ifap);
+  for (ifa = ifap; ifa; ifa = ifa->ifa_next) {
+    if ((o_strcmp(ifa->ifa_name, pchIfName) == 0) && (ifa->ifa_addr->sa_family == typeINET)) {
+
+      if (typeINET == AF_INET) {
+        getnameinfo(ifa->ifa_addr, sizeof(struct sockaddr_in), addr, sizeof(addr), NULL, 0, NI_NUMERICHOST);
+      } else {
+        getnameinfo(ifa->ifa_addr, sizeof(struct sockaddr_in6), addr, sizeof(addr), NULL, 0, NI_NUMERICHOST);
+      }    
+
+      ret_addr = o_strdup(addr);
+      break;
+    }
+  }
+  freeifaddrs(ifap);
+
+	if (ret_addr)
+	  return ret_addr;
+
+	return o_strdup(INVALID_IP);
+}
+
 BOOL getStatusNetwork(json_t **j_result) {
 
   json_t *j_data;
@@ -127,12 +159,16 @@ BOOL getStatusNetwork(json_t **j_result) {
   protocolMode = getProtocolMode();
 
   if ((protocolMode == 0) || (protocolMode == 2)) {
-    json_object_set_new(j_data, "add_ipv4", json_string("10.1.39.120"));
+    char *pchIPv4 = getIfaddr(pchInterface, AF_INET);
+
+    json_object_set_new(j_data, "add_ipv4", json_string(pchIPv4));
     json_object_set_new(j_data, "netmask", json_string("255.255.255.0"));
     json_object_set_new(j_data, "gateway_ipv4", json_string("10.1.39.1"));
     json_object_set_new(j_data, "type_ipv4", json_string("0"));
     json_object_set_new(j_data, "dns1_ipv4", json_string("8.8.8.8"));
     json_object_set_new(j_data, "dns2_ipv4", json_string(""));
+
+    o_free(pchIPv4);
   } else {
     json_object_set_new(j_data, "add_ipv4", json_string(""));
     json_object_set_new(j_data, "netmask", json_string(""));
@@ -143,11 +179,15 @@ BOOL getStatusNetwork(json_t **j_result) {
   }
 
   if ((protocolMode == 1) || (protocolMode == 2)) {
-    json_object_set_new(j_data, "add_ipv6", json_string("0::0"));
+    char *pchIPv6 = getIfaddr(pchInterface, AF_INET6);
+
+    json_object_set_new(j_data, "add_ipv6", json_string(pchIPv6));
     json_object_set_new(j_data, "gateway_ipv6", json_string("0::0"));
     json_object_set_new(j_data, "type_ipv6", json_string("0"));
     json_object_set_new(j_data, "dns1_ipv6", json_string("0::0"));
     json_object_set_new(j_data, "dns2_ipv6", json_string("0::0"));
+
+    o_free(pchIPv6);
   } else {
     json_object_set_new(j_data, "add_ipv6", json_string(""));
     json_object_set_new(j_data, "gateway_ipv6", json_string(""));
@@ -168,7 +208,6 @@ BOOL getStatusNetwork(json_t **j_result) {
 }
 
 BOOL getStatusSystem(json_t **j_result) {
-
 
   json_t *j_data;
   char *pchInterface;
