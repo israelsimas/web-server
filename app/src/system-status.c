@@ -231,11 +231,69 @@ static char *getIfGateway(char *pchIfName, BOOL isIPv6) {
   return pchGateway;
 }
 
+static char *getMac() {
+
+  char *pchMAC = NULL;
+	FILE *pf;
+
+  pf = popen("/sbin/ifconfig eth0 | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}'", "r");
+	if (pf) {
+
+		pchMAC = malloc(sizeof(char) * SIZE_STR_MAC);
+		memset(pchMAC, 0, SIZE_STR_MAC);
+		fgets(pchMAC, SIZE_STR_MAC, pf);
+
+		pclose(pf);
+	} 
+
+  if (!pchMAC) {
+    pchMAC = o_strdup("00:00:00:00:00:00");  
+  }  
+
+  return pchMAC;
+}
+
+void get_dns_servers(char **ppchDns1, char **ppchDns2, BOOL isIPv6) {
+  FILE *pf;
+  char line[200] , *pchDNS;
+  BOOL bDNS1 = TRUE;
+
+  if (isIPv6) {
+    pf = popen("/etc/resolvIPv6.conf", "r");  
+  } else {
+    pf = popen("/etc/resolvIPv4.conf", "r");
+  }
+
+  if (!pf) {
+    return;
+  }
+
+  while (fgets(line , 200 , pf)) {
+
+    if(line[0] == '#') {
+      continue;
+    }
+
+    if (o_strncmp(line , "nameserver" , o_strlen("nameserver")) == 0) {
+
+      pchDNS = strtok(line , " ");
+      pchDNS = strtok(NULL , " ");
+
+      if (bDNS1) {
+        *ppchDns1 = o_strdup(pchDNS);
+        bDNS1 = FALSE;
+      } else {
+        *ppchDns2 = o_strdup(pchDNS);
+      }
+    }
+  }
+}
+
 BOOL getStatusNetwork(json_t **j_result) {
 
   json_t *j_data;
-  char *pchInterface;
   int protocolMode;
+  char *pchInterface, *pchMac, *pchIPv4, *pchIPv6, *pchMask, *pchGateway, *pchDns1, *pchDns2; 
 
   if (j_result == NULL) {
     return FALSE;
@@ -247,22 +305,35 @@ BOOL getStatusNetwork(json_t **j_result) {
     return FALSE;
   } 
 
+  pchDns1 = NULL;
+  pchDns2 = NULL; 
   pchInterface = getActiveInterface();
   protocolMode = getProtocolMode();
 
   if ((protocolMode == 0) || (protocolMode == 2)) {
-    char *pchIPv4 = getIfaddr(pchInterface, AF_INET);
-    char *pchMask = getMaskaddr(pchInterface, AF_INET);
+
+    pchIPv4    = getIfaddr(pchInterface, AF_INET);
+    pchMask    = getMaskaddr(pchInterface, AF_INET);
+    pchGateway = getIfGateway(pchInterface, FALSE);
 
     json_object_set_new(j_data, "add_ipv4", json_string(pchIPv4));
     json_object_set_new(j_data, "netmask", json_string(pchMask));
-    json_object_set_new(j_data, "gateway_ipv4", json_string(getIfGateway(pchInterface, FALSE)));
+    json_object_set_new(j_data, "gateway_ipv4", json_string(pchGateway));
     json_object_set_new(j_data, "type_ipv4", json_integer(getInterfaceType(pchInterface, FALSE)));
-    json_object_set_new(j_data, "dns1_ipv4", json_string("8.8.8.8"));
-    json_object_set_new(j_data, "dns2_ipv4", json_string(""));
 
-    o_free(pchIPv4);
-    o_free(pchMask);
+    get_dns_servers(&pchDns1, &pchDns2, FALSE);
+    if (pchDns1) {
+      json_object_set_new(j_data, "dns1_ipv4", json_string(pchDns1));
+    } else {
+      json_object_set_new(j_data, "dns1_ipv4", json_string(""));
+    }
+
+    if (pchDns2) {
+      json_object_set_new(j_data, "dns1_ipv4", json_string(pchDns2));
+    } else {
+      json_object_set_new(j_data, "dns2_ipv4", json_string(""));
+    }
+
   } else {
     json_object_set_new(j_data, "add_ipv4", json_string(""));
     json_object_set_new(j_data, "netmask", json_string(""));
@@ -273,17 +344,26 @@ BOOL getStatusNetwork(json_t **j_result) {
   }
 
   if ((protocolMode == 1) || (protocolMode == 2)) {
-    char *pchIPv6 = getIfaddr(pchInterface, AF_INET6);
-    char *pchMask = getMaskaddr(pchInterface, AF_INET);
+    pchIPv6    = getIfaddr(pchInterface, AF_INET6);
+    pchGateway = getIfGateway(pchInterface, TRUE);
 
     json_object_set_new(j_data, "add_ipv6", json_string(pchIPv6));
-    json_object_set_new(j_data, "gateway_ipv6", json_string(getIfGateway(pchInterface, FALSE)));
+    json_object_set_new(j_data, "gateway_ipv6", json_string(pchGateway));
     json_object_set_new(j_data, "type_ipv6", json_integer(getInterfaceType(pchInterface, TRUE)));
-    json_object_set_new(j_data, "dns1_ipv6", json_string("0::0"));
-    json_object_set_new(j_data, "dns2_ipv6", json_string("0::0"));
 
-    o_free(pchIPv6);
-    o_free(pchMask);
+    get_dns_servers(&pchDns1, &pchDns2, TRUE);
+    if (pchDns1) {
+      json_object_set_new(j_data, "dns1_ipv6", json_string(pchDns1));
+    } else {
+      json_object_set_new(j_data, "dns1_ipv6", json_string(""));
+    }
+
+    if (pchDns2) {
+      json_object_set_new(j_data, "dns2_ipv6", json_string(pchDns2));
+    } else {
+      json_object_set_new(j_data, "dns2_ipv6", json_string(""));
+    }
+   
   } else {
     json_object_set_new(j_data, "add_ipv6", json_string(""));
     json_object_set_new(j_data, "gateway_ipv6", json_string(""));
@@ -292,13 +372,19 @@ BOOL getStatusNetwork(json_t **j_result) {
     json_object_set_new(j_data, "dns2_ipv6", json_string(""));
   }  
 
-  json_object_set_new(j_data, "mac", json_string("00:1A:3F:01:02:03"));
-
+  pchMac = getMac();
+  json_object_set_new(j_data, "mac", json_string(pchMac));
   json_object_set_new(j_data, "prot_mode", json_integer(protocolMode));
 
   json_array_append_new(*j_result, j_data);
 
   o_free(pchInterface);
+  o_free(pchMac);
+  o_free(pchIPv6);
+  o_free(pchMask);
+  o_free(pchGateway);
+  o_free(pchDns1);
+  o_free(pchDns2);   
 
 	return TRUE;
 }

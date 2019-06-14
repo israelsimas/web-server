@@ -15,7 +15,8 @@
 
 #define DEFAULT_INTERFACE "eth0"
 #define INVALID_IP        "0"
-#define SIZE_STR_GATEWAY   40
+#define SIZE_STR_GATEWAY  40
+#define SIZE_STR_MAC      40
 
 /**************************************************************************
  * TYPEDEFS
