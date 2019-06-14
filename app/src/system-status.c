@@ -392,8 +392,8 @@ BOOL getStatusNetwork(json_t **j_result) {
 BOOL getStatusSystem(json_t **j_result) {
 
   json_t *j_data;
-  FILE *pf;
-  char line[200]; 
+  FILE *pf; 
+  char pchCmdRet[SIZE_STR_STATUS_SYS];
 
   if (j_result == NULL) {
     return FALSE;
@@ -408,39 +408,54 @@ BOOL getStatusSystem(json_t **j_result) {
   pf = popen("/proc/uptime", "r");
   if (pf) {
 
-    char *pchTmpOp = malloc(sizeof(char) * SIZE_STR_TMP_OP);
-    memset(pchTmpOp, 0, SIZE_STR_TMP_OP);
-    fgets(pchTmpOp, SIZE_STR_TMP_OP, pf);
+    memset(pchCmdRet, 0, SIZE_STR_STATUS_SYS);
+    fgets(pchCmdRet, SIZE_STR_STATUS_SYS, pf);
 
-    json_object_set_new(j_data, "tmp_op", json_string(pchTmpOp));
+    json_object_set_new(j_data, "tmp_op", json_string(pchCmdRet));
 
     pclose(pf);
-    o_free(pchTmpOp);
   } 
 
   pf = popen("uname -n", "r");
   if (pf) {
 
-    char *pchUname = malloc(sizeof(char) * SIZE_STR_UNAME);
-    memset(pchUname, 0, SIZE_STR_UNAME);
-    fgets(pchUname, SIZE_STR_UNAME, pf);
+    memset(pchCmdRet, 0, SIZE_STR_STATUS_SYS);
+    fgets(pchCmdRet, SIZE_STR_STATUS_SYS, pf);
 
-    json_object_set_new(j_data, "host_name", json_string(pchUname));
+    json_object_set_new(j_data, "host_name", json_string(pchCmdRet));
 
     pclose(pf);
-    o_free(pchUname);
   } 
+
+   pf = popen("fw_printenv rootfspart | cut -d\"=\" -f2'", "r");
+  if (pf) {
+
+    int partition;
+
+    memset(pchCmdRet, 0, SIZE_STR_STATUS_SYS);
+    fgets(pchCmdRet, SIZE_STR_STATUS_SYS, pf);
+
+    if (o_strcmp(pchCmdRet, "rootfs") == 0) {
+      partition = 1;
+    } else {
+      partition = 2;
+    }
+
+    json_object_set_new(j_data, "freePartition", json_integer(partition));
+
+    pclose(pf);
+  }  
 
   json_object_set_new(j_data, "tmp_ntp", json_string(""));
   json_object_set_new(j_data, "date", json_string(""));
   json_object_set_new(j_data, "time24h", json_string(""));
   json_object_set_new(j_data, "time12h", json_string(""));
 
-  json_object_set_new(j_data, "hwVersion", json_string("1"));
   json_object_set_new(j_data, "swMajor", json_string(systemGeneral.pchswMajor));
   json_object_set_new(j_data, "swMinor", json_string(systemGeneral.swMinor));  
   json_object_set_new(j_data, "swPatch", json_string(systemGeneral.swPatch));  
-  json_object_set_new(j_data, "freePartition", json_string("1"));  
+
+  json_object_set_new(j_data, "hwVersion", json_string("1")); // default hardware
 
   json_array_append_new(*j_result, j_data);
 

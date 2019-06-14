@@ -17,8 +17,7 @@
 #define INVALID_IP        "0"
 #define SIZE_STR_GATEWAY  40
 #define SIZE_STR_MAC      40
-#define SIZE_STR_TMP_OP   40
-#define SIZE_STR_UNAME    40
+#define SIZE_STR_STATUS_SYS   40
 
 /**************************************************************************
  * TYPEDEFS
