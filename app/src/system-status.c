@@ -4,7 +4,7 @@
  *
  *    Get general information to web service
  *
- * Copyright 2017 Intelbras
+ * Copyright 2019 Intelbras
  *
  **************************************************************************/
 
@@ -28,11 +28,21 @@ struct _h_connection *pConnDB;
 
 static void loadSystemGeneral(SYSTEM_GENERAL *pSystemGeneral) {
 
+  char *pchToken, pchVersion[10];
+
 	getConfig(CFG_ACCOUNTS_NUMBER, &pSystemGeneral->accountNumber, TYPE_WORD);
 	getConfig(CFG_PRODUCT, &pSystemGeneral->pchProduct, TYPE_STRING);
 	getConfig(CFG_PRODUCT_VERSION, &pSystemGeneral->pchVersion, TYPE_STRING);
 	getConfig(CFG_BRANCH, &pSystemGeneral->pchBranch, TYPE_STRING);
 	getConfig(CFG_DATABASE, &pSystemGeneral->pchDatabasePath, TYPE_STRING);
+
+  strcpy(pchVersion, pSystemGeneral->pchVersion);
+  pchToken = strtok(pchVersion, ".");
+  pSystemGeneral->pchswMajor = o_strdup(pchToken);
+  pchToken = strtok(NULL, ".");
+  pSystemGeneral->swMinor = o_strdup(pchToken);
+  pchToken = strtok(NULL, ".");
+  pSystemGeneral->swPatch = o_strdup(pchToken);
 }
 
 void initSystemGeneral(struct _h_connection *pConn) {
@@ -471,5 +481,3 @@ BOOL getStatusSystem(json_t **j_result) {
 
 	return TRUE;
 }
-
-
