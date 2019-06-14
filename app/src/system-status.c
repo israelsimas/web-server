@@ -139,6 +139,69 @@ static char *getIfaddr(char *pchIfName, int typeINET) {
 	return o_strdup(INVALID_IP);
 }
 
+static char *getMaskaddr(char *pchIfName, int typeINET) {
+	struct ifaddrs *ifap, *ifa;
+  char *addr = NULL;
+  char *ret_addr;
+
+  getifaddrs (&ifap);
+  for (ifa = ifap; ifa; ifa = ifa->ifa_next) {
+    if ((o_strcmp(ifa->ifa_name, pchIfName) == 0) && (ifa->ifa_addr->sa_family == typeINET)) {
+
+      if (typeINET == AF_INET) {
+        struct sockaddr_in *sa = (struct sockaddr_in *) ifa->ifa_netmask;
+        addr = inet_ntoa(sa->sin_addr);
+      } else {
+        struct sockaddr_in6 *sa = (struct sockaddr_in6 *) ifa->ifa_netmask;
+        inet_ntop(AF_INET6, (void *) &sa->sin6_addr, addr, (sizeof(char) * 16));
+      }
+      break;
+    }
+  }
+  freeifaddrs(ifap);
+
+	if (!addr)
+	  addr = o_strdup("255.255.255.0");
+
+	return addr;
+}
+
+static int getInterfaceType(char *pchIfName, BOOL isIPv6) {
+
+  char *pchQuery;
+  char *pchTable;
+  char *pchParamDHCP;
+  int interfaceType = 0;
+  struct _h_result result;
+
+  if (!o_strcmp(pchIfName, "eth0")) {
+    pchTable = "TAB_NET_ETH_WAN";
+    if (isIPv6) {
+      pchParamDHCP = "ETHActivateDHCPClientIPv6";      
+    } else {
+      pchParamDHCP = "ETHActivateDHCPClient";
+    }
+  } else {
+    pchTable = "TAB_NET_VLAN";
+    if (isIPv6) {
+      pchParamDHCP = "VLANActivateDHCPClientIPv6";      
+    } else {
+      pchParamDHCP = "VLANActivateDHCPClient"; 
+    }
+  }
+
+  pchQuery = msprintf("SELECT GROUP_CONCAT( %s, ',' ) as dhcp FROM %s",pchTable, pchParamDHCP);
+  if (h_query_select(pConnDB, pchQuery, &result) == H_OK) {
+    if (result.nb_rows == 1 && result.nb_columns == 1) {
+      interfaceType = ((struct _h_type_int *)result.data[0][0].t_data)->value;
+    }
+  } 
+
+  o_free(pchQuery);
+
+  return interfaceType;
+}
+
 BOOL getStatusNetwork(json_t **j_result) {
 
   json_t *j_data;
@@ -160,15 +223,17 @@ BOOL getStatusNetwork(json_t **j_result) {
 
   if ((protocolMode == 0) || (protocolMode == 2)) {
     char *pchIPv4 = getIfaddr(pchInterface, AF_INET);
+    char *pchMask = getMaskaddr(pchInterface, AF_INET);
 
     json_object_set_new(j_data, "add_ipv4", json_string(pchIPv4));
-    json_object_set_new(j_data, "netmask", json_string("255.255.255.0"));
+    json_object_set_new(j_data, "netmask", json_string(pchMask));
     json_object_set_new(j_data, "gateway_ipv4", json_string("10.1.39.1"));
-    json_object_set_new(j_data, "type_ipv4", json_string("0"));
+    json_object_set_new(j_data, "type_ipv4", json_integer(getInterfaceType(pchInterface, FALSE)));
     json_object_set_new(j_data, "dns1_ipv4", json_string("8.8.8.8"));
     json_object_set_new(j_data, "dns2_ipv4", json_string(""));
 
     o_free(pchIPv4);
+    o_free(pchMask);
   } else {
     json_object_set_new(j_data, "add_ipv4", json_string(""));
     json_object_set_new(j_data, "netmask", json_string(""));
@@ -180,14 +245,16 @@ BOOL getStatusNetwork(json_t **j_result) {
 
   if ((protocolMode == 1) || (protocolMode == 2)) {
     char *pchIPv6 = getIfaddr(pchInterface, AF_INET6);
+    char *pchMask = getMaskaddr(pchInterface, AF_INET);
 
     json_object_set_new(j_data, "add_ipv6", json_string(pchIPv6));
     json_object_set_new(j_data, "gateway_ipv6", json_string("0::0"));
-    json_object_set_new(j_data, "type_ipv6", json_string("0"));
+    json_object_set_new(j_data, "type_ipv6", json_integer(getInterfaceType(pchInterface, TRUE)));
     json_object_set_new(j_data, "dns1_ipv6", json_string("0::0"));
     json_object_set_new(j_data, "dns2_ipv6", json_string("0::0"));
 
     o_free(pchIPv6);
+    o_free(pchMask);
   } else {
     json_object_set_new(j_data, "add_ipv6", json_string(""));
     json_object_set_new(j_data, "gateway_ipv6", json_string(""));
