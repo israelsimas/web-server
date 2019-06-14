@@ -17,6 +17,8 @@
 #define INVALID_IP        "0"
 #define SIZE_STR_GATEWAY  40
 #define SIZE_STR_MAC      40
+#define SIZE_STR_TMP_OP   40
+#define SIZE_STR_UNAME    40
 
 /**************************************************************************
  * TYPEDEFS
@@ -26,6 +28,9 @@ typedef struct SYSTEM_GENERAL {
   char *pchBranch;
   char *pchDatabasePath;
   char *pchVersion;
+  char *pchswMajor;
+  char *swMinor;
+  char *swPatch;   
   int accountNumber;
 } SYSTEM_GENERAL;
 

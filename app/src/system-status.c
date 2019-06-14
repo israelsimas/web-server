@@ -279,10 +279,10 @@ void get_dns_servers(char **ppchDns1, char **ppchDns2, BOOL isIPv6) {
       pchDNS = strtok(line , " ");
       pchDNS = strtok(NULL , " ");
 
-      if (bDNS1) {
+      if (pchDNS && bDNS1) {
         *ppchDns1 = o_strdup(pchDNS);
         bDNS1 = FALSE;
-      } else {
+      } else if (pchDNS) {
         *ppchDns2 = o_strdup(pchDNS);
       }
     }
@@ -392,8 +392,8 @@ BOOL getStatusNetwork(json_t **j_result) {
 BOOL getStatusSystem(json_t **j_result) {
 
   json_t *j_data;
-  char *pchInterface;
-  int protocolMode;
+  FILE *pf;
+  char line[200]; 
 
   if (j_result == NULL) {
     return FALSE;
@@ -405,15 +405,41 @@ BOOL getStatusSystem(json_t **j_result) {
     return FALSE;
   } 
 
-  json_object_set_new(j_data, "tmp_op", json_string("12131"));
+  pf = popen("/proc/uptime", "r");
+  if (pf) {
+
+    char *pchTmpOp = malloc(sizeof(char) * SIZE_STR_TMP_OP);
+    memset(pchTmpOp, 0, SIZE_STR_TMP_OP);
+    fgets(pchTmpOp, SIZE_STR_TMP_OP, pf);
+
+    json_object_set_new(j_data, "tmp_op", json_string(pchTmpOp));
+
+    pclose(pf);
+    o_free(pchTmpOp);
+  } 
+
+  pf = popen("uname -n", "r");
+  if (pf) {
+
+    char *pchUname = malloc(sizeof(char) * SIZE_STR_UNAME);
+    memset(pchUname, 0, SIZE_STR_UNAME);
+    fgets(pchUname, SIZE_STR_UNAME, pf);
+
+    json_object_set_new(j_data, "host_name", json_string(pchUname));
+
+    pclose(pf);
+    o_free(pchUname);
+  } 
+
   json_object_set_new(j_data, "tmp_ntp", json_string(""));
   json_object_set_new(j_data, "date", json_string(""));
   json_object_set_new(j_data, "time24h", json_string(""));
   json_object_set_new(j_data, "time12h", json_string(""));
+
   json_object_set_new(j_data, "hwVersion", json_string("1"));
-  json_object_set_new(j_data, "swMajor", json_string("1"));
-  json_object_set_new(j_data, "swMinor", json_string("2"));  
-  json_object_set_new(j_data, "swPatch", json_string("3"));  
+  json_object_set_new(j_data, "swMajor", json_string(systemGeneral.pchswMajor));
+  json_object_set_new(j_data, "swMinor", json_string(systemGeneral.swMinor));  
+  json_object_set_new(j_data, "swPatch", json_string(systemGeneral.swPatch));  
   json_object_set_new(j_data, "freePartition", json_string("1"));  
 
   json_array_append_new(*j_result, j_data);
