@@ -36,6 +36,6 @@ BOOL openMiddleware();
 
 int stopZeroMQ();
 
-void sendMiddlewareMessage(char *pchTales);
+void sendMiddlewareMessage(const char *pchTales);
 
 #endif

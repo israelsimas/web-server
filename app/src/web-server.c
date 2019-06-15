@@ -118,7 +118,12 @@ int main(int argc, char **argv) {
   ulfius_add_endpoint_by_val(&instance, "GET", VERSIO_REQUEST, NULL, 0, &callback_version, NULL);
   ulfius_add_endpoint_by_val(&instance, "GET", BURN_STATUS_REQUEST, NULL, 0, &callback_burn_status, NULL);
   ulfius_add_endpoint_by_val(&instance, "GET", NOTIFY_REQUEST, NULL, 0, &callback_notify, NULL);
-  ulfius_add_endpoint_by_val(&instance, "GET", AUTOPROV_LOG_REQUEST, NULL, 0, &callback_autoprov_log, NULL);  
+  ulfius_add_endpoint_by_val(&instance, "GET", AUTOPROV_LOG_REQUEST, NULL, 0, &callback_autoprov_log, NULL);
+  ulfius_add_endpoint_by_val(&instance, "GET", DATE_TIME_REQUEST, NULL, 0, &callback_date_time, NULL);
+  ulfius_add_endpoint_by_val(&instance, "GET", SELF_PROV_REQUEST, NULL, 0, &callback_self_provisioning, NULL);  
+  ulfius_add_endpoint_by_val(&instance, "GET", CHANGE_PARTITION_REQUEST, NULL, 0, &callback_change_partition, NULL);
+  ulfius_add_endpoint_by_val(&instance, "GET", CAPTURE_LOG_REQUEST, NULL, 0, &callback_capture_log, NULL);
+
   ulfius_add_endpoint_by_val(&instance, "POST", RESTART_REQUEST, NULL, 0, &callback_restart, NULL);
   ulfius_add_endpoint_by_val(&instance, "POST", RESTART_SYSLOG_REQUEST, NULL, 0, &callback_restart_syslog, NULL);
   ulfius_add_endpoint_by_val(&instance, "POST", FACTORY_RESET_REQUEST, NULL, 0, &callback_factory_reset, NULL);
@@ -490,7 +495,7 @@ int callback_burn_status(const struct _u_request *request, struct _u_response *r
 int callback_notify(const struct _u_request *request, struct _u_response *response, void *user_data) {
 
   const char **ppKeys;
-  char *pchValue;
+  const char *pchValue;
   WORD wAccount;
 
   ppKeys = u_map_enum_keys(request->map_url);
@@ -508,19 +513,106 @@ int callback_notify(const struct _u_request *request, struct _u_response *respon
 
 int callback_autoprov_log(const struct _u_request *request, struct _u_response *response, void *user_data) {
 
-  json_t *pResult;
-  char *pchResponseBody;
+  // TODO - log to autoprov not available
+  ulfius_set_string_body_response(response, HTTP_SC_NOT_FOUND, NULL);
 
-  pResult = json_array();    
-  if (pResult) {  
+  return U_CALLBACK_COMPLETE; 
+}
 
-    // TODO - log to autoprov not available
-    ulfius_set_string_body_response(response, HTTP_SC_NOT_FOUND, NULL);
+int callback_date_time(const struct _u_request *request, struct _u_response *response, void *user_data) {
 
-    return U_CALLBACK_COMPLETE;
+  const char **ppKeys;
+  const char *pchValue;
+
+  ppKeys = u_map_enum_keys(request->map_url);
+
+  if (ppKeys[0] && (!o_strcmp(ppKeys[0], "updateNTP"))) {
+    setNTPDateTime();
+    ulfius_set_string_body_response(response, HTTP_SC_OK, NULL);
+    return U_CALLBACK_COMPLETE;  
+  } else if (ppKeys[0] && (!o_strcmp(ppKeys[0], "datetime"))) {
+    pchValue = u_map_get(request->map_url, ppKeys[0]);
+    if (pchValue) {
+      setManualDateTime(pchValue);
+    }
+    ulfius_set_string_body_response(response, HTTP_SC_OK, NULL);
+    return U_CALLBACK_COMPLETE;      
   } else {
     return U_CALLBACK_CONTINUE;
-  }  
+  }   
+}
+
+int callback_self_provisioning(const struct _u_request *request, struct _u_response *response, void *user_data) {
+
+  const char **ppKeys;
+  const char *pchValue;
+
+  ppKeys = u_map_enum_keys(request->map_url);
+
+  if (ppKeys[0]) {
+    pchValue = u_map_get(request->map_url, ppKeys[0]);
+    if (pchValue) {
+      // setSelfProvision(pchValue);
+      ulfius_set_string_body_response(response, HTTP_SC_OK, NULL);
+    } else {
+      ulfius_set_string_body_response(response, HTTP_SC_INTERNAL_SERVER_ERROR, NULL);
+    }
+    return U_CALLBACK_COMPLETE;  
+  } else {
+    return U_CALLBACK_CONTINUE;
+  }
+}
+
+int callback_change_partition(const struct _u_request *request, struct _u_response *response, void *user_data) {
+
+  const char **ppKeys;
+  const char *pchValue;
+
+  ppKeys = u_map_enum_keys(request->map_url);
+
+  if (ppKeys[0]) {
+    pchValue = u_map_get(request->map_url, ppKeys[0]);
+    if (pchValue) {
+      setChangeBootPartition(atoi(pchValue));
+      ulfius_set_string_body_response(response, HTTP_SC_OK, NULL);
+    } else {
+      ulfius_set_string_body_response(response, HTTP_SC_INTERNAL_SERVER_ERROR, NULL);
+    }
+    return U_CALLBACK_COMPLETE;  
+  } else {
+    return U_CALLBACK_CONTINUE;
+  } 
+}
+
+int callback_capture_log(const struct _u_request *request, struct _u_response *response, void *user_data) {
+
+  const char **ppKeys;
+  const char *pchValue;
+  ppKeys = u_map_enum_keys(request->map_url);
+
+  if (ppKeys[0] && (!o_strcmp(ppKeys[0], "action"))) {
+    pchValue = u_map_get(request->map_url, ppKeys[0]);
+    if (pchValue) {
+      if (!o_strcmp(pchValue, "start")) {
+        startCaptureLog();
+        ulfius_set_string_body_response(response, HTTP_SC_OK, NULL);
+      } else if (!o_strcmp(pchValue, "stop")) {
+        stopCaptureLog();
+        ulfius_set_string_body_response(response, HTTP_SC_OK, NULL);
+      } else if (!o_strcmp(pchValue, "export")) {
+        exportLog();
+        ulfius_set_string_body_response(response, HTTP_SC_OK, NULL);
+      } else {
+        ulfius_set_string_body_response(response, HTTP_SC_INTERNAL_SERVER_ERROR, NULL);
+      }
+
+    } else {
+      ulfius_set_string_body_response(response, HTTP_SC_INTERNAL_SERVER_ERROR, NULL);
+    }
+    return U_CALLBACK_COMPLETE;  
+  } else {
+    return U_CALLBACK_CONTINUE;
+  } 
 }
 
 int callback_restart(const struct _u_request *request, struct _u_response *response, void *user_data) {

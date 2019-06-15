@@ -233,7 +233,7 @@ BOOL getStatusAccount(json_t ** j_result) {
 	return TRUE;
 }
 
-static char *getActiveInterface() {
+char *getActiveInterface() {
   char *pchInterface = NULL;
   struct _h_result result;
 

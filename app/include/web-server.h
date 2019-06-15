@@ -48,6 +48,10 @@
 #define SET_LANGUAGE_REQUEST    "/setLanguage.cgi"
 #define NOTIFY_REQUEST          "/notify.cgi"
 #define AUTOPROV_LOG_REQUEST    "/autoprov.log"
+#define DATE_TIME_REQUEST       "/setDatetime.cgi"
+#define SELF_PROV_REQUEST       "/setSelfProvision.cgi"
+#define CHANGE_PARTITION_REQUEST  "/changeBootPartition.cgi"
+#define CAPTURE_LOG_REQUEST     "/captureLog.cgi"
 
 #define NOT_FOUND_MESSAGE "Page not found, do what you want"
 
@@ -252,6 +256,26 @@ int callback_notify(const struct _u_request *request, struct _u_response *respon
  * Callback function used to get Autoprov logs 
  */ 
 int callback_autoprov_log(const struct _u_request *request, struct _u_response *response, void *user_data);
+
+/*
+ * Callback function used to get date time 
+ */ 
+int callback_date_time(const struct _u_request *request, struct _u_response *response, void *user_data);
+
+/*
+ * Callback function used to set provisioning
+ */ 
+int callback_self_provisioning(const struct _u_request *request, struct _u_response *response, void *user_data);
+
+/*
+ * Callback function used to change partition
+ */ 
+int callback_change_partition(const struct _u_request *request, struct _u_response *response, void *user_data);
+
+/*
+ * Callback function used to get Logs
+ */ 
+int callback_capture_log(const struct _u_request *request, struct _u_response *response, void *user_data);
 
 /*
  * Callback function used to get version 

@@ -18,6 +18,10 @@
  * TYPEDEFS
  **************************************************************************/
 
+#define PARTITION_1 "rootfs"
+#define PARTITION_2 "rootfs-2"
+
+#define PREFIX_PATH_LOGS "/data"
 
 /**************************************************************************
  * INTERNAL FUNCTIONS
@@ -33,6 +37,20 @@ void logoReset();
 
 void setLanguage();
 
-void notifyTables(char *pchTables);
+void notifyTables(const char *pchTables);
+
+void setNTPDateTime();
+
+void setManualDateTime(const char *pchDate);
+
+void setChangeBootPartition(int bootPartition);
+
+void setSelfProvision(const char *pchParameters);
+
+void startCaptureLog();
+
+void stopCaptureLog();
+
+void exportLog();
 
 #endif

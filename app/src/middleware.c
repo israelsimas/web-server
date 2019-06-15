@@ -60,7 +60,7 @@ static int s_sendmore (void *socket, char *string) {
   return size;
 }
 
-void sendMiddlewareMessage(char *pchTales) {
+void sendMiddlewareMessage(const char *pchTales) {
 
 	char *pchData;
   json_t *pResult;
