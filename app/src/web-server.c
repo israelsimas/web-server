@@ -364,7 +364,7 @@ int callback_endpoint_status(const struct _u_request *request, struct _u_respons
   json_t *pResult;
   char *pchResponseBody;
 
-  pResult = json_array();
+  pResult = json_object();
   if (pResult) {  
     getEndpointFreeStatus(&pResult);
     pchResponseBody = json_dumps(pResult, JSON_INDENT(2));

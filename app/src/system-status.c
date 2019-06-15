@@ -133,56 +133,38 @@ BOOL getRegisterStatusAccount(json_t ** j_result, WORD wAccount) {
 }
 
 static int getEndpointStatus() {
-  int sockfd;
-	char buffer[BUFFER_ENDP_LENGHT];
-	int numSend, numRcv, len;
-	struct sockaddr_un remote;
   int endpointStatus = ENDPOINT_BUSY;
+  int sockfd, recvLen, slen; 
+  char pchBuffer[BUFFER_REG_LENGHT]; 
+  struct sockaddr_in servaddr; 
 
-	/*--- Open socket ---*/
-	if ((sockfd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
-		printf("Socket");
-		return endpointStatus;
-	}
+  if ( (sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0 ) { 
+    LOG_ERROR("socket creation failed"); 
+    return endpointStatus;
+  } 
 
-  remote.sun_family = AF_UNIX;
-  strcpy(remote.sun_path, SOCK_STATUS_ADDR);
-  len = strlen(remote.sun_path) + sizeof(remote.sun_family);
+  memset(&servaddr, 0, sizeof(servaddr)); 
+  slen = sizeof(servaddr);
+  memset(pchBuffer, 0, BUFFER_REG_LENGHT);
+    
+  servaddr.sin_family       = AF_INET; 
+  servaddr.sin_port         = htons(PORT_SERVER_ENDPOINT_STATUS); 
+  servaddr.sin_addr.s_addr  = INADDR_ANY; 
+    
+  sendto(sockfd, ENDPOINT_STATUS, o_strlen(ENDPOINT_STATUS), MSG_CONFIRM, (const struct sockaddr *) &servaddr, sizeof(servaddr)); 
+  if ((recvLen = recvfrom(sockfd, (char *)pchBuffer, BUFFER_REG_LENGHT, MSG_WAITALL, (struct sockaddr *) &servaddr, &slen)) != ERROR) {
+     endpointStatus = atoi(pchBuffer);
+  }
 
-	/*---Connect to server---*/
-  if (connect(sockfd, (struct sockaddr *)&remote, len) != 0) {
-		printf("Connect ");
-		return endpointStatus;
-	}
+  close(sockfd); 
 
-	 /* Send message to the server */
-	numSend = send(sockfd, ENDPOINT_STATUS, sizeof(ENDPOINT_STATUS), 0);
-	if (numSend < 0) {
-		printf("ERROR writing to socket");
-		return endpointStatus;
-	}
+  return endpointStatus;
 
-	/* Data from Server */
-	bzero(buffer, BUFFER_ENDP_LENGHT);
-	numRcv = recv(sockfd, buffer, sizeof(buffer), 0);
-	if (numRcv > 0) {
-		if (!strcmp(buffer, "0")) {
-			endpointStatus = 0;
-		} else {
-			endpointStatus = 1;
-		}
-	}
-
-	/*---Clean up---*/
-	close(sockfd);
-
-	return endpointStatus;
 }
 
 BOOL getEndpointFreeStatus(json_t ** j_result) {
 
 	int i;
-  json_t *j_data;
   char pchUserField[10];
   WORD wRegisterCode;
   BOOL bRegisterICIP;
@@ -191,16 +173,8 @@ BOOL getEndpointFreeStatus(json_t ** j_result) {
     return FALSE;
   }
 
-  j_data = json_object();
-  if (j_data == NULL) {
-    json_decref(*j_result); 
-    return FALSE;
-  } 
-
-  json_object_set_new(j_data, "endpointsFree", json_integer(getEndpointStatus()));
+  json_object_set_new(*j_result, "endpointsFree", json_integer(getEndpointStatus()));
   
-  json_array_append_new(*j_result, j_data);
-
 	return TRUE;
 }
 

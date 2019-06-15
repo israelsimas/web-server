@@ -29,7 +29,7 @@
 
 #define BUFFER_ENDP_LENGHT 	20
 #define ENDPOINT_STATUS 		"CMD_STATUS"
-#define SOCK_STATUS_ADDR		"/tmp/endpointstatus"
+#define PORT_SERVER_ENDPOINT_STATUS   4860
 
 #define PERCENTAGE_STR_LEN  4
 
