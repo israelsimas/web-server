@@ -23,6 +23,10 @@
 #include <time.h>
 #include <string.h>
 #include <stdio.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+
 
 #define THIS_FILE "system-status.c"
 
@@ -59,15 +63,86 @@ SYSTEM_GENERAL* getSystemGeneral() {
   return &systemGeneral;
 }
 
+static int getEndpointStatus() {
+  int sockfd;
+	char buffer[BUFFER_ENDP_LENGHT];
+	int numSend, numRcv, len;
+	struct sockaddr_un remote;
+  int endpointStatus = ENDPOINT_BUSY;
+
+	/*--- Open socket ---*/
+	if ((sockfd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
+		printf("Socket");
+		return endpointStatus;
+	}
+
+  remote.sun_family = AF_UNIX;
+  strcpy(remote.sun_path, SOCK_STATUS_ADDR);
+  len = strlen(remote.sun_path) + sizeof(remote.sun_family);
+
+	/*---Connect to server---*/
+  if (connect(sockfd, (struct sockaddr *)&remote, len) != 0) {
+		printf("Connect ");
+		return endpointStatus;
+	}
+
+	 /* Send message to the server */
+	numSend = send(sockfd, ENDPOINT_STATUS, sizeof(ENDPOINT_STATUS), 0);
+	if (numSend < 0) {
+		printf("ERROR writing to socket");
+		return endpointStatus;
+	}
+
+	/* Data from Server */
+	bzero(buffer, BUFFER_ENDP_LENGHT);
+	numRcv = recv(sockfd, buffer, sizeof(buffer), 0);
+	if (numRcv > 0) {
+		if (!strcmp(buffer, "0")) {
+			endpointStatus = 0;
+		} else {
+			endpointStatus = 1;
+		}
+	}
+
+	/*---Clean up---*/
+	close(sockfd);
+
+	return endpointStatus;
+}
+
+BOOL getEndpointFreeStatus(json_t ** j_result) {
+
+	int i;
+  json_t *j_data;
+  char pchUserField[10];
+  WORD wRegisterCode;
+  BOOL bRegisterICIP;
+
+  if (j_result == NULL) {
+    return FALSE;
+  }
+
+  j_data = json_object();
+  if (j_data == NULL) {
+    json_decref(*j_result); 
+    return FALSE;
+  } 
+
+  json_object_set_new(j_data, "endpointsFree", json_integer(getEndpointStatus()));
+  
+  json_array_append_new(*j_result, j_data);
+
+	return TRUE;
+}
+
 static void getRegisterStatus(WORD wAccount, WORD *wRegisterCode, BOOL *bRegisterICIP) {
 
-  int sockfd, recvLen, slen, statusRegister; 
+  int sockfd, recvLen, slen; 
   char pchBuffer[BUFFER_REG_LENGHT]; 
   struct sockaddr_in servaddr; 
   char pchAccount[3];
 
   sprintf(pchAccount, "%d", wAccount);
-  statusRegister = INVALID_REGISTER_STATUS;
 
   if ( (sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0 ) { 
     LOG_ERROR("socket creation failed"); 
@@ -114,7 +189,7 @@ BOOL getStatusAccount(json_t ** j_result) {
     json_decref(*j_result); 
     return FALSE;
   } 
-
+ 
 	for (i = 0; i < systemGeneral.accountNumber; i++) {
     sprintf(pchUserField, "user%d", (i+1));
     getRegisterStatus(i, &wRegisterCode, &bRegisterICIP);

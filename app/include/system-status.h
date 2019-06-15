@@ -25,7 +25,11 @@
 #define SIZE_STR_STATUS_SYS      40
 #define BUFFER_REG_LENGHT 		   15
 #define PORT_SERVER_REG_STATUS   4849
-#define INVALID_REGISTER_STATUS  0
+#define ENDPOINT_BUSY     0
+
+#define BUFFER_ENDP_LENGHT 	20
+#define ENDPOINT_STATUS 		"CMD_STATUS"
+#define SOCK_STATUS_ADDR		"/tmp/endpointstatus"
 
 /**************************************************************************
  * TYPEDEFS
@@ -48,6 +52,8 @@ typedef struct SYSTEM_GENERAL {
 void initSystemGeneral(struct _h_connection *pConn);
 
 SYSTEM_GENERAL *getSystemGeneral();
+
+BOOL getEndpointFreeStatus(json_t ** j_result);
 
 BOOL getStatusAccount(json_t ** j_result);
 
