@@ -27,4 +27,6 @@ void restartSystem();
 
 void restartSyslog();
 
+void factoryReset();
+
 #endif

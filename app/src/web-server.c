@@ -116,6 +116,7 @@ int main(int argc, char **argv) {
   ulfius_add_endpoint_by_val(&instance, "GET", BURN_STATUS_REQUEST, NULL, 0, &callback_burn_status, NULL);
   ulfius_add_endpoint_by_val(&instance, "POST", RESTART_REQUEST, NULL, 0, &callback_restart, NULL);
   ulfius_add_endpoint_by_val(&instance, "POST", RESTART_SYSLOG_REQUEST, NULL, 0, &callback_restart_syslog, NULL);
+  ulfius_add_endpoint_by_val(&instance, "POST", FACTORY_RESET_REQUEST, NULL, 0, &callback_factory_reset, NULL);
   ulfius_add_endpoint_by_val(&instance, "GET", "*", NULL, 1, &callback_static_file, &mime_types);
   
   // default_endpoint declaration
@@ -490,6 +491,14 @@ int callback_restart(const struct _u_request *request, struct _u_response *respo
 int callback_restart_syslog(const struct _u_request *request, struct _u_response *response, void *user_data) {
 
   restartSyslog();
+  ulfius_set_string_body_response(response, HTTP_SC_OK, NULL);
+
+  return U_CALLBACK_COMPLETE;
+}
+
+int callback_factory_reset(const struct _u_request *request, struct _u_response *response, void *user_data) {
+
+  factoryReset();
   ulfius_set_string_body_response(response, HTTP_SC_OK, NULL);
 
   return U_CALLBACK_COMPLETE;
