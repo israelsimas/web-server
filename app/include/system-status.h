@@ -65,4 +65,6 @@ BOOL getStatusSystem(json_t ** j_result);
 
 BOOL getGeneralStatus(json_t **j_result);
 
+BOOL getGigaSupport(json_t **j_result);
+
 #endif

@@ -110,6 +110,7 @@ int main(int argc, char **argv) {
   ulfius_add_endpoint_by_val(&instance, "GET", ENDPOINT_STATUS_REQUEST, NULL, 0, &callback_endpoint_status, NULL);
   ulfius_add_endpoint_by_val(&instance, "GET", STATUS_REGISTER_REQUEST, NULL, 0, &callback_status_register, NULL);
   ulfius_add_endpoint_by_val(&instance, "GET", STATUS_GENERAL_REQUEST, NULL, 0, &callback_status_general, NULL);
+  ulfius_add_endpoint_by_val(&instance, "GET", SUPPORT_GIGA_REQUEST, NULL, 0, &callback_support_giga, NULL);
   ulfius_add_endpoint_by_val(&instance, "GET", "*", NULL, 1, &callback_static_file, &mime_types);
   
   // default_endpoint declaration
@@ -397,6 +398,27 @@ int callback_status_general(const struct _u_request *request, struct _u_response
   pResult = json_array();    
   if (pResult) {  
     getGeneralStatus(&pResult);
+    pchResponseBody = json_dumps(pResult, JSON_INDENT(2));
+    json_decref(pResult); 
+
+    ulfius_set_string_body_response(response, HTTP_SC_OK, pchResponseBody);
+
+    o_free(pchResponseBody);
+
+    return U_CALLBACK_COMPLETE;
+  } else {
+    return U_CALLBACK_CONTINUE;
+  } 
+}
+
+int callback_support_giga(const struct _u_request *request, struct _u_response *response, void *user_data) {
+
+  json_t *pResult;
+  char *pchResponseBody;
+
+  pResult = json_array();    
+  if (pResult) {  
+    getGigaSupport(&pResult);
     pchResponseBody = json_dumps(pResult, JSON_INDENT(2));
     json_decref(pResult); 
 

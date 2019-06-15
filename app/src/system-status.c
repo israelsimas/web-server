@@ -761,3 +761,26 @@ BOOL getGeneralStatus(json_t **j_result) {
 
 	return TRUE;
 }
+
+BOOL getGigaSupport(json_t **j_result) {
+
+  json_t *j_data;
+  FILE *pf;
+  char *pchMac, *pchIPv4, *pchAccountsName; 
+
+  if (j_result == NULL) {
+    return FALSE;
+  }
+
+  j_data = json_object();
+  if (j_data == NULL) {
+    json_decref(*j_result); 
+    return FALSE;
+  } 
+
+  json_object_set_new(j_data, "supportGiga", json_string("0")); // Disable giga support
+
+  json_array_append_new(*j_result, j_data);
+
+	return TRUE;
+}

@@ -38,6 +38,7 @@
 #define ENDPOINT_STATUS_REQUEST "/endpoint_status.cgi"
 #define STATUS_REGISTER_REQUEST "/statusRegister.cgi"
 #define STATUS_GENERAL_REQUEST  "/status_general.cgi"
+#define SUPPORT_GIGA_REQUEST    "/support_giga.cgi"
 
 #define NOT_FOUND_MESSAGE "Page not found, do what you want"
 
@@ -219,9 +220,14 @@ int callback_endpoint_status(const struct _u_request *request, struct _u_respons
 int callback_status_register(const struct _u_request *request, struct _u_response *response, void *user_data);
 
 /*
- * Callback function used to get status genral from system
+ * Callback function used to get status general from system
  */ 
 int callback_status_general(const struct _u_request *request, struct _u_response *response, void *user_data);
+
+/*
+ * Callback function used to get statusfor giga support
+ */ 
+int callback_support_giga(const struct _u_request *request, struct _u_response *response, void *user_data);
 
 /*
  * Callback function used to serve static files that are present in the static folder
