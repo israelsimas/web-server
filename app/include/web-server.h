@@ -42,6 +42,7 @@
 #define VERSIO_REQUEST          "/version.cgi"
 #define RESTART_REQUEST         "/restart.cgi"
 #define RESTART_SYSLOG_REQUEST  "/restart_syslog.cgi"
+#define BURN_STATUS_REQUEST     "/burn_status.cgi"
 
 #define NOT_FOUND_MESSAGE "Page not found, do what you want"
 
@@ -236,6 +237,11 @@ int callback_support_giga(const struct _u_request *request, struct _u_response *
  * Callback function used to get version 
  */ 
 int callback_version(const struct _u_request *request, struct _u_response *response, void *user_data);
+
+/*
+ * Callback function used to get version 
+ */ 
+int callback_burn_status(const struct _u_request *request, struct _u_response *response, void *user_data);
 
 /*
  * Callback function used reboot system

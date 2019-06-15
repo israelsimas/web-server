@@ -823,3 +823,33 @@ BOOL getVersionStatus(json_t **j_result) {
 
 	return TRUE;
 }
+
+BOOL getBurningStatus(json_t **j_result) {
+  
+  json_t *j_data;
+  FILE *pf;
+  char pchPercent[PERCENTAGE_STR_LEN];
+
+  if (j_result == NULL) {
+    return FALSE;
+  }
+
+  j_data = json_object();
+  if (j_data == NULL) {
+    json_decref(*j_result); 
+    return FALSE;
+  } 
+
+  sprintf(pchPercent, "%d", 0);
+  pf = popen("cat /tmp/burningPercent", "r");
+	if (pf) {
+		fgets(pchPercent, PERCENTAGE_STR_LEN, pf);
+		pclose(pf);
+	} 
+
+  json_object_set_new(j_data, "percent", json_integer(atoi(pchPercent)));
+
+  json_array_append_new(*j_result, j_data);
+
+	return TRUE; 
+}

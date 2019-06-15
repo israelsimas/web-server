@@ -31,6 +31,8 @@
 #define ENDPOINT_STATUS 		"CMD_STATUS"
 #define SOCK_STATUS_ADDR		"/tmp/endpointstatus"
 
+#define PERCENTAGE_STR_LEN  4
+
 /**************************************************************************
  * TYPEDEFS
  **************************************************************************/
@@ -68,5 +70,7 @@ BOOL getGeneralStatus(json_t **j_result);
 BOOL getGigaSupport(json_t **j_result);
 
 BOOL getVersionStatus(json_t **j_result);
+
+BOOL getBurningStatus(json_t **j_result);
 
 #endif
