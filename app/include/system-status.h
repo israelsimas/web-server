@@ -67,4 +67,6 @@ BOOL getGeneralStatus(json_t **j_result);
 
 BOOL getGigaSupport(json_t **j_result);
 
+BOOL getVersionStatus(json_t **j_result);
+
 #endif

@@ -39,6 +39,7 @@
 #define STATUS_REGISTER_REQUEST "/statusRegister.cgi"
 #define STATUS_GENERAL_REQUEST  "/status_general.cgi"
 #define SUPPORT_GIGA_REQUEST    "/support_giga.cgi"
+#define VERSIO_REQUEST          "/version.cgi"
 
 #define NOT_FOUND_MESSAGE "Page not found, do what you want"
 
@@ -228,6 +229,11 @@ int callback_status_general(const struct _u_request *request, struct _u_response
  * Callback function used to get statusfor giga support
  */ 
 int callback_support_giga(const struct _u_request *request, struct _u_response *response, void *user_data);
+
+/*
+ * Callback function used to get version 
+ */ 
+int callback_version(const struct _u_request *request, struct _u_response *response, void *user_data);
 
 /*
  * Callback function used to serve static files that are present in the static folder

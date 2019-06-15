@@ -26,7 +26,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/un.h>
-
+#include <ctype.h>
 
 #define THIS_FILE "system-status.c"
 
@@ -779,6 +779,45 @@ BOOL getGigaSupport(json_t **j_result) {
   } 
 
   json_object_set_new(j_data, "supportGiga", json_string("0")); // Disable giga support
+
+  json_array_append_new(*j_result, j_data);
+
+	return TRUE;
+}
+
+void convertToUpperCase(char *pchSrc, char *pchDest) {
+  while (*pchSrc != '\0') {
+    *pchDest = toupper(*pchSrc);
+    pchSrc++;
+    pchDest++;
+  }
+
+  *pchDest = POINTER_NULL;
+}
+
+BOOL getVersionStatus(json_t **j_result) {
+
+  json_t *j_data;
+  FILE *pf;
+  char pchUpper[10]; 
+
+  if (j_result == NULL) {
+    return FALSE;
+  }
+
+  j_data = json_object();
+  if (j_data == NULL) {
+    json_decref(*j_result); 
+    return FALSE;
+  } 
+  
+  json_object_set_new(j_data, "version", json_string(systemGeneral.pchVersion));
+  convertToUpperCase(systemGeneral.pchProduct, pchUpper);
+  json_object_set_new(j_data, "product", json_string(pchUpper));
+  if (systemGeneral.pchBranch) {
+    convertToUpperCase(systemGeneral.pchBranch, pchUpper);
+    json_object_set_new(j_data, "branch", json_string(pchUpper));
+  }
 
   json_array_append_new(*j_result, j_data);
 
