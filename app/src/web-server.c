@@ -117,21 +117,10 @@ int main(int argc, char **argv) {
   
   // default_endpoint declaration
   ulfius_set_default_endpoint(&instance, &callback_default, NULL);
-  
-  // Start the framework
-  if (argc == 4 && o_strcmp("-secure", argv[1]) == 0) {
-    // If command-line options are -secure <key_file> <cert_file>, then open an https connection
-    char *pchKeyPem = readFile(argv[2]), *pchCertPem = readFile(argv[3]);
 
-    status = ulfius_start_secure_framework(&instance, pchKeyPem, pchCertPem);
-    o_free(pchKeyPem);
-    o_free(pchCertPem);
 
-  } else {
-    // Open an http connection
-    status = ulfius_start_framework(&instance);
-  }
-
+  // Open an http connection
+  status = ulfius_start_framework(&instance);
   if (status == SUCCESS) {
     
     // Wait for the user to press <enter> on the console to quit the application
