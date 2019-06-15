@@ -37,6 +37,7 @@
 #define STATUS_REQUEST    "/status.cgi"
 #define ENDPOINT_STATUS_REQUEST "/endpoint_status.cgi"
 #define STATUS_REGISTER_REQUEST "/statusRegister.cgi"
+#define STATUS_GENERAL_REQUEST  "/status_general.cgi"
 
 #define NOT_FOUND_MESSAGE "Page not found, do what you want"
 
@@ -216,6 +217,11 @@ int callback_endpoint_status(const struct _u_request *request, struct _u_respons
  * Callback function used to get register status from Endpoint
  */ 
 int callback_status_register(const struct _u_request *request, struct _u_response *response, void *user_data);
+
+/*
+ * Callback function used to get status genral from system
+ */ 
+int callback_status_general(const struct _u_request *request, struct _u_response *response, void *user_data);
 
 /*
  * Callback function used to serve static files that are present in the static folder

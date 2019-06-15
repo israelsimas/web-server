@@ -63,4 +63,6 @@ BOOL getStatusNetwork(json_t ** j_result);
 
 BOOL getStatusSystem(json_t ** j_result);
 
+BOOL getGeneralStatus(json_t **j_result);
+
 #endif

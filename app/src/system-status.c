@@ -53,6 +53,7 @@ static void loadSystemGeneral(SYSTEM_GENERAL *pSystemGeneral) {
 }
 
 void initSystemGeneral(struct _h_connection *pConn) {
+  memset(&systemGeneral, 0, sizeof(SYSTEM_GENERAL));
   openConfig();
   loadSystemGeneral(&systemGeneral);
   closeConfig();
@@ -636,6 +637,125 @@ BOOL getStatusSystem(json_t **j_result) {
   json_object_set_new(j_data, "swPatch", json_string(systemGeneral.swPatch));  
 
   json_object_set_new(j_data, "hwVersion", json_string("1")); // default hardware
+
+  json_array_append_new(*j_result, j_data);
+
+	return TRUE;
+}
+
+static char *getAccountsName() {
+
+  json_t *j_data;
+  json_t *pResult;
+  char *pchAccountsName, pchField[SIZE_STR_STATUS_SYS];
+  int i, account;
+  WORD wRegisterCode;
+  BOOL bRegisterICIP;
+
+  pchAccountsName = NULL;
+
+  pResult = json_array();    
+  if (pResult) {  
+
+    j_data = json_object();
+    if (j_data == NULL) {
+      json_decref(pResult); 
+      return FALSE;
+    }
+
+    for (i = 0; i < systemGeneral.accountNumber; i++) {
+      struct _h_result result;
+      char *pchSelectAccount;
+
+       account = i + 1;
+
+      pchSelectAccount = msprintf("SELECT CallerIDName, PhoneNumber FROM TAB_VOIP_ACCOUNT where PK = %d", account);
+      if (h_query_select(pConnDB, pchSelectAccount, &result) == H_OK) {
+        if (result.nb_rows == 1) {
+
+          char *pchCallerIDName = ((struct _h_type_text *)result.data[0][0].t_data)->value;
+          char *pchPhoneNumber  = ((struct _h_type_text *)result.data[0][1].t_data)->value;
+
+          if (pchCallerIDName) {
+            sprintf(pchField, "username_%d", account);
+            json_object_set_new(j_data, pchField, json_string(pchCallerIDName));
+          }
+
+          if (pchPhoneNumber) {
+            sprintf(pchField, "extension_%d", account);
+            json_object_set_new(j_data, pchField, json_string(pchPhoneNumber));
+          }                  
+        }
+      }
+      o_free(pchSelectAccount); 
+
+      
+      pchSelectAccount = msprintf("SELECT AccountActive FROM TAB_TEL_ACCOUNT where PK = %d;", account);
+      if (h_query_select(pConnDB, pchSelectAccount, &result) == H_OK) {
+        if (result.nb_rows == 1) {
+
+          char *pchEnable = ((struct _h_type_text *)result.data[0][0].t_data)->value;
+
+          if (pchEnable) {
+            sprintf(pchField, "enable_%d", account);
+            json_object_set_new(j_data, pchField, json_integer(atoi(pchEnable)));
+          }                    
+        }
+      }
+      o_free(pchSelectAccount);          
+      
+      sprintf(pchField, "register_%d", account);
+      getRegisterStatus(i, &wRegisterCode, &bRegisterICIP);
+      json_object_set_new(j_data, pchField, (wRegisterCode==200)?json_true():json_false());
+    }
+
+    json_array_append_new(pResult, j_data);
+
+    pchAccountsName = json_dumps(pResult, JSON_INDENT(2));
+
+    json_decref(pResult); 
+  }
+
+  return pchAccountsName;
+}
+
+BOOL getGeneralStatus(json_t **j_result) {
+
+  json_t *j_data;
+  FILE *pf;
+  char *pchMac, *pchIPv4, *pchAccountsName; 
+
+  if (j_result == NULL) {
+    return FALSE;
+  }
+
+  j_data = json_object();
+  if (j_data == NULL) {
+    json_decref(*j_result); 
+    return FALSE;
+  } 
+
+  pchMac = getMac();
+  json_object_set_new(j_data, "mac", json_string(pchMac));
+  json_object_set_new(j_data, "version", json_string(systemGeneral.pchVersion));
+  if (systemGeneral.pchBranch) {
+    char pchModel[20];
+    sprintf(pchModel, "%s_%s", systemGeneral.pchProduct, systemGeneral.pchBranch);
+    json_object_set_new(j_data, "model", json_string(pchModel));
+  } else {
+    json_object_set_new(j_data, "model", json_string(systemGeneral.pchProduct));
+  }
+  json_object_set_new(j_data, "numAcc", json_integer(systemGeneral.accountNumber));
+
+  pchIPv4 = getIfaddr(DEFAULT_INTERFACE, AF_INET);
+  json_object_set_new(j_data, "ip_address", json_string(pchIPv4));
+
+  pchAccountsName = getAccountsName();
+  json_object_set_new(j_data, "accounts", json_string(pchAccountsName));
+
+  o_free(pchMac);
+  o_free(pchIPv4);
+  o_free(pchAccountsName);
 
   json_array_append_new(*j_result, j_data);
 
