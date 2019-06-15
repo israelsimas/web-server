@@ -13,6 +13,7 @@
 #include <hoel.h>
 #include <config.h>
 #include <jansson.h>
+#include <misc.h>
 #include <system-status.h>
 #include <ifaddrs.h>
 #include <unistd.h>
@@ -20,6 +21,8 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <time.h>
+#include <string.h>
+#include <stdio.h>
 
 #define THIS_FILE "system-status.c"
 
@@ -36,7 +39,7 @@ static void loadSystemGeneral(SYSTEM_GENERAL *pSystemGeneral) {
 	getConfig(CFG_BRANCH, &pSystemGeneral->pchBranch, TYPE_STRING);
 	getConfig(CFG_DATABASE, &pSystemGeneral->pchDatabasePath, TYPE_STRING);
 
-  strcpy(pchVersion, pSystemGeneral->pchVersion);
+  o_strcpy(pchVersion, pSystemGeneral->pchVersion);
   pchToken = strtok(pchVersion, ".");
   pSystemGeneral->pchswMajor = o_strdup(pchToken);
   pchToken = strtok(NULL, ".");
@@ -56,9 +59,40 @@ SYSTEM_GENERAL* getSystemGeneral() {
   return &systemGeneral;
 }
 
-static char *getUserAccount(WORD wAccount) {
+static int getRegisterStatus(WORD wAccount) {
 
-  return "200";
+  int sockfd, recvLen, slen, statusRegister; 
+  char pchBuffer[BUFFER_REG_LENGHT]; 
+  struct sockaddr_in servaddr; 
+  char pchAccount[3];
+
+  sprintf(pchAccount, "%d", wAccount);
+  statusRegister = INVALID_REGISTER_STATUS;
+
+  if ( (sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0 ) { 
+    LOG_ERROR("socket creation failed"); 
+    return statusRegister; 
+  } 
+
+  memset(&servaddr, 0, sizeof(servaddr)); 
+  slen = sizeof(servaddr);
+  memset(pchBuffer, 0, BUFFER_REG_LENGHT);
+    
+  servaddr.sin_family       = AF_INET; 
+  servaddr.sin_port         = htons(PORT_SERVER_REG_STATUS); 
+  servaddr.sin_addr.s_addr  = INADDR_ANY; 
+    
+  sendto(sockfd, (const char *)pchAccount, o_strlen(pchAccount), MSG_CONFIRM, (const struct sockaddr *) &servaddr, sizeof(servaddr)); 
+  if ((recvLen = recvfrom(sockfd, (char *)pchBuffer, BUFFER_REG_LENGHT, MSG_WAITALL, (struct sockaddr *) &servaddr, &slen)) != ERROR) {
+    char *pchToken = strtok(pchBuffer, ",");
+    if (pchToken) {
+      statusRegister = atoi(pchToken);
+    }    
+  }
+
+  close(sockfd); 
+
+  return statusRegister;
 }
 
 BOOL getStatusAccount(json_t ** j_result) {
@@ -79,7 +113,7 @@ BOOL getStatusAccount(json_t ** j_result) {
 
 	for (i = 0; i < systemGeneral.accountNumber; i++) {
     sprintf(pchUserField, "user%d", (i+1));
-    json_object_set_new(j_data, pchUserField, json_string(getUserAccount(i)));
+    json_object_set_new(j_data, pchUserField, json_integer(getRegisterStatus(i)));
 	}
 
   json_array_append_new(*j_result, j_data);

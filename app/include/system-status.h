@@ -17,7 +17,10 @@
 #define INVALID_IP        "0"
 #define SIZE_STR_GATEWAY  40
 #define SIZE_STR_MAC      40
-#define SIZE_STR_STATUS_SYS   40
+#define SIZE_STR_STATUS_SYS      40
+#define BUFFER_REG_LENGHT 		   15
+#define PORT_SERVER_REG_STATUS   4849
+#define INVALID_REGISTER_STATUS  0
 
 /**************************************************************************
  * TYPEDEFS
