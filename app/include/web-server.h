@@ -47,6 +47,7 @@
 #define LOGO_RESET_REQUEST      "/logoReset.cgi"
 #define SET_LANGUAGE_REQUEST    "/setLanguage.cgi"
 #define NOTIFY_REQUEST          "/notify.cgi"
+#define AUTOPROV_LOG_REQUEST    "/autoprov.log"
 
 #define NOT_FOUND_MESSAGE "Page not found, do what you want"
 
@@ -246,6 +247,11 @@ int callback_version(const struct _u_request *request, struct _u_response *respo
  * Callback function used to notify tables changes 
  */ 
 int callback_notify(const struct _u_request *request, struct _u_response *response, void *user_data);
+
+/*
+ * Callback function used to get Autoprov logs 
+ */ 
+int callback_autoprov_log(const struct _u_request *request, struct _u_response *response, void *user_data);
 
 /*
  * Callback function used to get version 

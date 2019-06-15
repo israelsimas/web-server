@@ -118,6 +118,7 @@ int main(int argc, char **argv) {
   ulfius_add_endpoint_by_val(&instance, "GET", VERSIO_REQUEST, NULL, 0, &callback_version, NULL);
   ulfius_add_endpoint_by_val(&instance, "GET", BURN_STATUS_REQUEST, NULL, 0, &callback_burn_status, NULL);
   ulfius_add_endpoint_by_val(&instance, "GET", NOTIFY_REQUEST, NULL, 0, &callback_notify, NULL);
+  ulfius_add_endpoint_by_val(&instance, "GET", AUTOPROV_LOG_REQUEST, NULL, 0, &callback_autoprov_log, NULL);  
   ulfius_add_endpoint_by_val(&instance, "POST", RESTART_REQUEST, NULL, 0, &callback_restart, NULL);
   ulfius_add_endpoint_by_val(&instance, "POST", RESTART_SYSLOG_REQUEST, NULL, 0, &callback_restart_syslog, NULL);
   ulfius_add_endpoint_by_val(&instance, "POST", FACTORY_RESET_REQUEST, NULL, 0, &callback_factory_reset, NULL);
@@ -503,6 +504,23 @@ int callback_notify(const struct _u_request *request, struct _u_response *respon
   } else {
     return U_CALLBACK_CONTINUE;
   } 
+}
+
+int callback_autoprov_log(const struct _u_request *request, struct _u_response *response, void *user_data) {
+
+  json_t *pResult;
+  char *pchResponseBody;
+
+  pResult = json_array();    
+  if (pResult) {  
+
+    // TODO - log to autoprov not available
+    ulfius_set_string_body_response(response, HTTP_SC_NOT_FOUND, NULL);
+
+    return U_CALLBACK_COMPLETE;
+  } else {
+    return U_CALLBACK_CONTINUE;
+  }  
 }
 
 int callback_restart(const struct _u_request *request, struct _u_response *response, void *user_data) {
