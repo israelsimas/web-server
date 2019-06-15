@@ -71,26 +71,8 @@ int main(int argc, char **argv) {
   }
 
   initSystemGeneral(connDB);
-  pSystemStatus = getSystemGeneral();
 
   openMiddleware();
-
-  // ////////////////////////////
-  // {
-  //   json_t *pResult;
-  //   char *pchResult, *result;
-  //   json_t *json;
-
-  //   pResult = json_array();
-  //   if (pResult) { 
-  //     getStatusAccount(&pResult);
-  //     getStatusNetwork(&pResult);
-  //     getStatusSystem(&pResult);
-  //     pchResult = json_dumps(pResult, JSON_INDENT(2));
-
-  //   }
-  // }
-  // ////////////////////////////
   
   u_map_put(instance.default_headers, "Access-Control-Allow-Origin", "*");
   
@@ -351,7 +333,34 @@ int callback_database(const struct _u_request *request, struct _u_response *resp
 
 int callback_status(const struct _u_request *request, struct _u_response *response, void *user_data) {
 
-  char *pchResponseBody = msprintf(STATUS_CONTENT);
+  char *pchResponseBody = NULL;
+  json_t *pResultAcc, *pResultNetwork, *pResultSystem;
+  char *pchResult, *pchResultAcc, *pchResultNetwork, *pchResultSystem, *result;
+  SYSTEM_GENERAL *pSystemStatus;
+
+  pSystemStatus = getSystemGeneral();
+
+  pResultAcc = json_object();
+  getStatusAccount(&pResultAcc);
+  pchResultAcc = json_dumps(pResultAcc, JSON_INDENT(2));
+
+  pResultNetwork = json_object();
+  getStatusNetwork(&pResultNetwork);
+  pchResultNetwork = json_dumps(pResultNetwork, JSON_INDENT(2));
+
+  pResultSystem = json_object();
+  getStatusSystem(&pResultSystem);
+  pchResultSystem = json_dumps(pResultSystem, JSON_INDENT(2));
+
+  pchResponseBody = msprintf("{ \"account\": %s,\n \"net\": %s,\n \"system\": %s,\n \"product\":\"%s\",\n \"branch\":\"%s\" }", pchResultAcc, pchResultNetwork, pchResultSystem, pSystemStatus->pchProduct, pSystemStatus->pchBranch);
+
+  o_free(pchResultAcc);
+  o_free(pchResultNetwork);
+  o_free(pchResultSystem);
+
+  json_decref(pResultAcc);
+  json_decref(pResultNetwork);
+  json_decref(pResultSystem);
 
   ulfius_set_string_body_response(response, HTTP_SC_OK, pchResponseBody);
   o_free(pchResponseBody);

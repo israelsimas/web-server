@@ -189,20 +189,12 @@ BOOL getStatusAccount(json_t ** j_result) {
   if (j_result == NULL) {
     return FALSE;
   }
-
-  j_data = json_object();
-  if (j_data == NULL) {
-    json_decref(*j_result); 
-    return FALSE;
-  } 
  
 	for (i = 0; i < systemGeneral.accountNumber; i++) {
     sprintf(pchUserField, "user%d", (i+1));
     getRegisterStatus(i, &wRegisterCode, &bRegisterICIP);
-    json_object_set_new(j_data, pchUserField, json_integer(wRegisterCode));
+    json_object_set_new(*j_result, pchUserField, json_integer(wRegisterCode));
 	}
-
-  json_array_append_new(*j_result, j_data);
 
 	return TRUE;
 }
@@ -442,11 +434,7 @@ BOOL getStatusNetwork(json_t **j_result) {
     return FALSE;
   }
 
-  j_data = json_object();
-  if (j_data == NULL) {
-    json_decref(*j_result); 
-    return FALSE;
-  } 
+  j_data = *j_result;
 
   pchIPv4 = NULL;
   pchIPv6 = NULL;
@@ -522,8 +510,6 @@ BOOL getStatusNetwork(json_t **j_result) {
   json_object_set_new(j_data, "mac", json_string(pchMac));
   json_object_set_new(j_data, "prot_mode", json_integer(protocolMode));
 
-  json_array_append_new(*j_result, j_data);
-
   o_free(pchInterface);
   o_free(pchMac);
   o_free(pchIPv6);
@@ -548,11 +534,7 @@ BOOL getStatusSystem(json_t **j_result) {
     return FALSE;
   }
 
-  j_data = json_object();
-  if (j_data == NULL) {
-    json_decref(*j_result); 
-    return FALSE;
-  } 
+  j_data = *j_result;
 
   pf = popen("cat /proc/uptime", "r");
   if (pf) {
@@ -611,8 +593,6 @@ BOOL getStatusSystem(json_t **j_result) {
   json_object_set_new(j_data, "swPatch", json_string(systemGeneral.swPatch));  
 
   json_object_set_new(j_data, "hwVersion", json_string("1")); // default hardware
-
-  json_array_append_new(*j_result, j_data);
 
 	return TRUE;
 }
