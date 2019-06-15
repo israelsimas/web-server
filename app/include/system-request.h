@@ -31,4 +31,6 @@ void factoryReset();
 
 void logoReset();
 
+void setLanguage();
+
 #endif

@@ -66,3 +66,8 @@ void logoReset() {
   system("cp /etc/images/logo.bmp /data/images/logo.bmp"); 	
 	system("sync"); 
 }
+
+void setLanguage() {
+  // TODO
+  // Not necessary to set language because Table update will change the language
+}
