@@ -473,7 +473,7 @@ BOOL getStatusSystem(json_t **j_result) {
     return FALSE;
   } 
 
-  pf = popen("/proc/uptime", "r");
+  pf = popen("cat /proc/uptime", "r");
   if (pf) {
 
     memset(pchCmdRet, 0, SIZE_STR_STATUS_SYS);
