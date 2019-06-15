@@ -18,4 +18,4 @@ file(GLOB sources "app/src/*.c" )
 
 add_executable(web-server ${sources} ${headers})
 
-target_link_libraries( web-server pthread sqlite3 ulfius orcania jansson microhttpd jansson m )
+target_link_libraries( web-server pthread sqlite3 ulfius orcania jansson microhttpd jansson m zmq )

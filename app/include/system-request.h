@@ -33,4 +33,6 @@ void logoReset();
 
 void setLanguage();
 
+void notifyTables(char *pchTables);
+
 #endif

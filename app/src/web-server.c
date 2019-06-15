@@ -22,6 +22,7 @@
 #include <jansson.h>
 #include <system-status.h>
 #include <system-request.h>
+#include <middleware.h>
 
 #define THIS_FILE "web-server.c"
 
@@ -72,6 +73,8 @@ int main(int argc, char **argv) {
   initSystemGeneral(connDB);
   pSystemStatus = getSystemGeneral();
 
+  openMiddleware();
+
   // ////////////////////////////
   // {
   //   json_t *pResult;
@@ -114,6 +117,7 @@ int main(int argc, char **argv) {
   ulfius_add_endpoint_by_val(&instance, "GET", SUPPORT_GIGA_REQUEST, NULL, 0, &callback_support_giga, NULL);
   ulfius_add_endpoint_by_val(&instance, "GET", VERSIO_REQUEST, NULL, 0, &callback_version, NULL);
   ulfius_add_endpoint_by_val(&instance, "GET", BURN_STATUS_REQUEST, NULL, 0, &callback_burn_status, NULL);
+  ulfius_add_endpoint_by_val(&instance, "GET", NOTIFY_REQUEST, NULL, 0, &callback_notify, NULL);
   ulfius_add_endpoint_by_val(&instance, "POST", RESTART_REQUEST, NULL, 0, &callback_restart, NULL);
   ulfius_add_endpoint_by_val(&instance, "POST", RESTART_SYSLOG_REQUEST, NULL, 0, &callback_restart_syslog, NULL);
   ulfius_add_endpoint_by_val(&instance, "POST", FACTORY_RESET_REQUEST, NULL, 0, &callback_factory_reset, NULL);
@@ -477,6 +481,25 @@ int callback_burn_status(const struct _u_request *request, struct _u_response *r
     o_free(pchResponseBody);
 
     return U_CALLBACK_COMPLETE;
+  } else {
+    return U_CALLBACK_CONTINUE;
+  } 
+}
+
+int callback_notify(const struct _u_request *request, struct _u_response *response, void *user_data) {
+
+  const char **ppKeys;
+  char *pchValue;
+  WORD wAccount;
+
+  ppKeys = u_map_enum_keys(request->map_url);
+
+  if (ppKeys[0]) {
+    pchValue = u_map_get(request->map_url, ppKeys[0]);
+    notifyTables(pchValue);
+    ulfius_set_string_body_response(response, HTTP_SC_OK, NULL);
+
+    return U_CALLBACK_COMPLETE;  
   } else {
     return U_CALLBACK_CONTINUE;
   } 

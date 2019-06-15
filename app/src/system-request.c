@@ -26,6 +26,7 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <ctype.h>
+#include <middleware.h>
 
 #define THIS_FILE "system-request.c"
 
@@ -70,4 +71,8 @@ void logoReset() {
 void setLanguage() {
   // TODO
   // Not necessary to set language because Table update will change the language
+}
+
+void notifyTables(char *pchTables) {
+  sendMiddlewareMessage(pchTables);
 }
