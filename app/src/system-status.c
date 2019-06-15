@@ -458,8 +458,8 @@ BOOL getStatusSystem(json_t **j_result) {
 
   json_t *j_data;
   FILE *pf; 
-  time_t t = time(NULL);
-  struct tm tm = *localtime(&t);
+  time_t seconds = time(NULL);
+  struct tm tm = *localtime(&seconds);
   char pchDate[SIZE_STR_STATUS_SYS];
   char pchCmdRet[SIZE_STR_STATUS_SYS];
 
@@ -514,7 +514,7 @@ BOOL getStatusSystem(json_t **j_result) {
     pclose(pf);
   }  
 
-  json_object_set_new(j_data, "tmp_ntp", json_real(tm.tm_gmtoff));
+  json_object_set_new(j_data, "tmp_ntp", json_real(seconds));
 
   sprintf(pchDate, "%d/%d/%d", tm.tm_mday, tm.tm_mon, tm.tm_year);
   json_object_set_new(j_data, "date", json_string(pchDate));
