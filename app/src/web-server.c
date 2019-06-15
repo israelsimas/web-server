@@ -123,6 +123,8 @@ int main(int argc, char **argv) {
   ulfius_add_endpoint_by_val(&instance, "GET", SELF_PROV_REQUEST, NULL, 0, &callback_self_provisioning, NULL);  
   ulfius_add_endpoint_by_val(&instance, "GET", CHANGE_PARTITION_REQUEST, NULL, 0, &callback_change_partition, NULL);
   ulfius_add_endpoint_by_val(&instance, "GET", CAPTURE_LOG_REQUEST, NULL, 0, &callback_capture_log, NULL);
+  ulfius_add_endpoint_by_val(&instance, "GET", STATUS_FW_CLOUD_REQUEST, NULL, 0, &callback_status_fw_cloud, NULL);
+  ulfius_add_endpoint_by_val(&instance, "GET", UPDATE_FW_CLOUD_REQUEST, NULL, 0, &callback_update_fw_cloud, NULL);
 
   ulfius_add_endpoint_by_val(&instance, "POST", RESTART_REQUEST, NULL, 0, &callback_restart, NULL);
   ulfius_add_endpoint_by_val(&instance, "POST", RESTART_SYSLOG_REQUEST, NULL, 0, &callback_restart_syslog, NULL);
@@ -614,6 +616,65 @@ int callback_capture_log(const struct _u_request *request, struct _u_response *r
     return U_CALLBACK_CONTINUE;
   } 
 }
+
+int callback_status_fw_cloud(const struct _u_request *request, struct _u_response *response, void *user_data) {
+
+  json_t *pResult;
+  char *pchResponseBody;
+
+  pResult = json_array();    
+  if (pResult) {  
+    getFwCloudVersion(&pResult);
+    pchResponseBody = json_dumps(pResult, JSON_INDENT(2));
+    json_decref(pResult); 
+
+    ulfius_set_string_body_response(response, HTTP_SC_OK, pchResponseBody);
+
+    o_free(pchResponseBody);
+
+    return U_CALLBACK_COMPLETE;
+  } else {
+    return U_CALLBACK_CONTINUE;
+  } 
+}
+
+int callback_update_fw_cloud(const struct _u_request *request, struct _u_response *response, void *user_data) {
+
+  json_t *pResult;
+  char *pchResponseBody;
+
+  pResult = json_array();    
+  if (pResult) {  
+    // getVersionStatus(&pResult); TODO
+    // pchResponseBody = json_dumps(pResult, JSON_INDENT(2));
+    json_decref(pResult); 
+
+    ulfius_set_string_body_response(response, HTTP_SC_OK, NULL);
+
+    o_free(pchResponseBody);
+
+    return U_CALLBACK_COMPLETE;
+  } else {
+    return U_CALLBACK_CONTINUE;
+  } 
+}
+  // json_t *pResult;
+  // char *pchResponseBody;
+
+  // pResult = json_array();    
+  // if (pResult) {  
+  //   getGeneralStatus(&pResult);
+  //   pchResponseBody = json_dumps(pResult, JSON_INDENT(2));
+  //   json_decref(pResult); 
+
+  //   ulfius_set_string_body_response(response, HTTP_SC_OK, pchResponseBody);
+
+  //   o_free(pchResponseBody);
+
+  //   return U_CALLBACK_COMPLETE;
+  // } else {
+  //   return U_CALLBACK_CONTINUE;
+  // } 
 
 int callback_restart(const struct _u_request *request, struct _u_response *response, void *user_data) {
 

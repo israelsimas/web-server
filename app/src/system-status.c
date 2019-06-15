@@ -853,3 +853,34 @@ BOOL getBurningStatus(json_t **j_result) {
 
 	return TRUE; 
 }
+
+void getFwCloudVersion(json_t **j_result) {
+
+
+  json_t *j_data;
+  FILE *pf;
+  char *pchVersionLatest = NULL; 
+
+  if (j_result == NULL) {
+    return FALSE;
+  }
+
+  j_data = json_object();
+  if (j_data == NULL) {
+    json_decref(*j_result); 
+    return FALSE;
+  } 
+  
+  // pchVersionLatest = getStatusLatest(); // TODO 
+  if (pchVersionLatest) {
+    json_object_set_new(j_data, "captureFileFail", json_false());
+    json_object_set_new(j_data, "versionLatest", json_string(pchVersionLatest));
+    json_object_set_new(j_data, "actualFwVersion", json_string(systemGeneral.pchVersion));
+  } else {
+    json_object_set_new(j_data, "captureFileFail", json_true());
+  }
+  
+  json_array_append_new(*j_result, j_data);
+
+	return TRUE;
+}

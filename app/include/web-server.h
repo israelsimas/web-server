@@ -52,6 +52,8 @@
 #define SELF_PROV_REQUEST       "/setSelfProvision.cgi"
 #define CHANGE_PARTITION_REQUEST  "/changeBootPartition.cgi"
 #define CAPTURE_LOG_REQUEST     "/captureLog.cgi"
+#define STATUS_FW_CLOUD_REQUEST "/statusFwCloud.cgi"
+#define UPDATE_FW_CLOUD_REQUEST "/updateFwCloud.cgi"
 
 #define NOT_FOUND_MESSAGE "Page not found, do what you want"
 
@@ -276,6 +278,16 @@ int callback_change_partition(const struct _u_request *request, struct _u_respon
  * Callback function used to get Logs
  */ 
 int callback_capture_log(const struct _u_request *request, struct _u_response *response, void *user_data);
+
+/*
+ * Callback function used to get Fw cloud
+ */ 
+int callback_status_fw_cloud(const struct _u_request *request, struct _u_response *response, void *user_data);
+
+/*
+ * Callback function used to get Fw cloud
+ */ 
+int callback_update_fw_cloud(const struct _u_request *request, struct _u_response *response, void *user_data);
 
 /*
  * Callback function used to get version 
