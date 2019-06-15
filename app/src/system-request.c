@@ -59,3 +59,10 @@ void factoryReset() {
   // TODO
   //setSelfProvisioning('update_enable_config=1&update_url_server=undefined&update_path=&update_authType=2&update_username=&update_password=&update_protocol=3&update_turn_on=1&update_repeat=0&update_interval=undefined&update_weekly=0&update_begin_hour=&update_begin_minutes=&update_end_hour=&update_end_minutes=&weeks_mask=127', lighty.stat)	
 }
+
+void logoReset() {
+
+  system("rm /data/images/*");
+  system("cp /etc/images/logo.bmp /data/images/logo.bmp"); 	
+	system("sync"); 
+}

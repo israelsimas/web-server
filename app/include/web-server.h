@@ -44,6 +44,7 @@
 #define RESTART_SYSLOG_REQUEST  "/restart_syslog.cgi"
 #define BURN_STATUS_REQUEST     "/burn_status.cgi"
 #define FACTORY_RESET_REQUEST   "/factoryReset.cgi"
+#define LOGO_RESET_REQUEST      "/logoReset.cgi"
 
 #define NOT_FOUND_MESSAGE "Page not found, do what you want"
 
@@ -258,6 +259,11 @@ int callback_restart_syslog(const struct _u_request *request, struct _u_response
  * Callback function used factory Reset
  */ 
 int callback_factory_reset(const struct _u_request *request, struct _u_response *response, void *user_data);
+
+/*
+ * Callback function used Reset the logo
+ */ 
+int callback_logo_reset(const struct _u_request *request, struct _u_response *response, void *user_data);
 
 /*
  * Callback function used to serve static files that are present in the static folder

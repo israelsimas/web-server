@@ -29,4 +29,6 @@ void restartSyslog();
 
 void factoryReset();
 
+void logoReset();
+
 #endif
