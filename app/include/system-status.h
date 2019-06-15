@@ -53,6 +53,8 @@ void initSystemGeneral(struct _h_connection *pConn);
 
 SYSTEM_GENERAL *getSystemGeneral();
 
+BOOL getRegisterStatusAccount(json_t ** j_result, WORD wAccount);
+
 BOOL getEndpointFreeStatus(json_t ** j_result);
 
 BOOL getStatusAccount(json_t ** j_result);

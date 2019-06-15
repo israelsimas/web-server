@@ -63,6 +63,74 @@ SYSTEM_GENERAL* getSystemGeneral() {
   return &systemGeneral;
 }
 
+
+static void getRegisterStatus(WORD wAccount, WORD *wRegisterCode, BOOL *bRegisterICIP) {
+
+  int sockfd, recvLen, slen; 
+  char pchBuffer[BUFFER_REG_LENGHT]; 
+  struct sockaddr_in servaddr; 
+  char pchAccount[3];
+
+  sprintf(pchAccount, "%d", wAccount);
+
+  if ( (sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0 ) { 
+    LOG_ERROR("socket creation failed"); 
+    return; 
+  } 
+
+  memset(&servaddr, 0, sizeof(servaddr)); 
+  slen = sizeof(servaddr);
+  memset(pchBuffer, 0, BUFFER_REG_LENGHT);
+    
+  servaddr.sin_family       = AF_INET; 
+  servaddr.sin_port         = htons(PORT_SERVER_REG_STATUS); 
+  servaddr.sin_addr.s_addr  = INADDR_ANY; 
+    
+  sendto(sockfd, (const char *)pchAccount, o_strlen(pchAccount), MSG_CONFIRM, (const struct sockaddr *) &servaddr, sizeof(servaddr)); 
+  if ((recvLen = recvfrom(sockfd, (char *)pchBuffer, BUFFER_REG_LENGHT, MSG_WAITALL, (struct sockaddr *) &servaddr, &slen)) != ERROR) {
+    char *pchToken = strtok(pchBuffer, ",");
+    if (pchToken) {
+      *wRegisterCode = atoi(pchToken);
+      pchToken = strtok(NULL, ",");
+      *bRegisterICIP = atoi(pchToken);
+    }    
+  }
+
+  close(sockfd); 
+
+  return;
+}
+
+BOOL getRegisterStatusAccount(json_t ** j_result, WORD wAccount) {
+
+	int i;
+  json_t *j_data;
+  char pchUserField[10];
+  WORD wRegisterCode;
+  BOOL bRegisterICIP;
+
+  if (j_result == NULL) {
+    return FALSE;
+  }
+
+  j_data = json_object();
+  if (j_data == NULL) {
+    json_decref(*j_result); 
+    return FALSE;
+  } 
+ 
+	for (i = 0; i < systemGeneral.accountNumber; i++) {
+    sprintf(pchUserField, "user%d", (i+1));
+    getRegisterStatus(i, &wRegisterCode, &bRegisterICIP);
+    json_object_set_new(j_data, "RegisterStatus", json_integer(wRegisterCode));
+    json_object_set_new(j_data, "RegisterICIP", json_integer(bRegisterICIP));
+	}
+
+  json_array_append_new(*j_result, j_data);
+
+	return TRUE;
+}
+
 static int getEndpointStatus() {
   int sockfd;
 	char buffer[BUFFER_ENDP_LENGHT];
@@ -133,43 +201,6 @@ BOOL getEndpointFreeStatus(json_t ** j_result) {
   json_array_append_new(*j_result, j_data);
 
 	return TRUE;
-}
-
-static void getRegisterStatus(WORD wAccount, WORD *wRegisterCode, BOOL *bRegisterICIP) {
-
-  int sockfd, recvLen, slen; 
-  char pchBuffer[BUFFER_REG_LENGHT]; 
-  struct sockaddr_in servaddr; 
-  char pchAccount[3];
-
-  sprintf(pchAccount, "%d", wAccount);
-
-  if ( (sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0 ) { 
-    LOG_ERROR("socket creation failed"); 
-    return; 
-  } 
-
-  memset(&servaddr, 0, sizeof(servaddr)); 
-  slen = sizeof(servaddr);
-  memset(pchBuffer, 0, BUFFER_REG_LENGHT);
-    
-  servaddr.sin_family       = AF_INET; 
-  servaddr.sin_port         = htons(PORT_SERVER_REG_STATUS); 
-  servaddr.sin_addr.s_addr  = INADDR_ANY; 
-    
-  sendto(sockfd, (const char *)pchAccount, o_strlen(pchAccount), MSG_CONFIRM, (const struct sockaddr *) &servaddr, sizeof(servaddr)); 
-  if ((recvLen = recvfrom(sockfd, (char *)pchBuffer, BUFFER_REG_LENGHT, MSG_WAITALL, (struct sockaddr *) &servaddr, &slen)) != ERROR) {
-    char *pchToken = strtok(pchBuffer, ",");
-    if (pchToken) {
-      *wRegisterCode = atoi(pchToken);
-      pchToken = strtok(NULL, ",");
-      *bRegisterICIP = atoi(pchToken);
-    }    
-  }
-
-  close(sockfd); 
-
-  return;
 }
 
 BOOL getStatusAccount(json_t ** j_result) {

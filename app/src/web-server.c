@@ -71,22 +71,22 @@ int main(int argc, char **argv) {
   initSystemGeneral(connDB);
   pSystemStatus = getSystemGeneral();
 
-  ////////////////////////////
-  {
-    json_t *pResult;
-    char *pchResult, *result;
-    json_t *json;
+  // ////////////////////////////
+  // {
+  //   json_t *pResult;
+  //   char *pchResult, *result;
+  //   json_t *json;
 
-    pResult = json_array();
-    if (pResult) { 
-      getStatusAccount(&pResult);
-      getStatusNetwork(&pResult);
-      getStatusSystem(&pResult);
-      pchResult = json_dumps(pResult, JSON_INDENT(2));
+  //   pResult = json_array();
+  //   if (pResult) { 
+  //     getStatusAccount(&pResult);
+  //     getStatusNetwork(&pResult);
+  //     getStatusSystem(&pResult);
+  //     pchResult = json_dumps(pResult, JSON_INDENT(2));
 
-    }
-  }
-  ////////////////////////////
+  //   }
+  // }
+  // ////////////////////////////
   
   u_map_put(instance.default_headers, "Access-Control-Allow-Origin", "*");
   
@@ -360,12 +360,32 @@ int callback_endpoint_status(const struct _u_request *request, struct _u_respons
 
 int callback_status_register(const struct _u_request *request, struct _u_response *response, void *user_data) {
 
-  char *pchResponseBody = msprintf(REGISTER_STATUS_CONTENT);
+  json_t *pResult;
+  char *pchResponseBody;
+  const char **ppKeys;
+  WORD wAccount;
 
-  ulfius_set_string_body_response(response, HTTP_SC_OK, pchResponseBody);
-  o_free(pchResponseBody);
+  ppKeys = u_map_enum_keys(request->map_url);
 
-  return U_CALLBACK_COMPLETE;
+  if (ppKeys[0]) {
+    wAccount = atoi(ppKeys[0]);
+    pResult = json_array();    
+    if (pResult) {  
+      getRegisterStatusAccount(&pResult, wAccount);
+      pchResponseBody = json_dumps(pResult, JSON_INDENT(2));
+      json_decref(pResult); 
+
+      ulfius_set_string_body_response(response, HTTP_SC_OK, pchResponseBody);
+
+      o_free(pchResponseBody);
+
+      return U_CALLBACK_COMPLETE;
+    } else {
+      return U_CALLBACK_CONTINUE;
+    }
+  } else {
+      return U_CALLBACK_CONTINUE;
+  }  
 }
 
 const char *getFilenameExt(const char *pchPath) {
