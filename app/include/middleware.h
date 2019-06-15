@@ -22,7 +22,7 @@
 /**************************************************************************
  * DEFINITIONS
  **************************************************************************/
-#define ZMQ_PUBLISHER_ADDR   			    "tcp://*:5561"
+#define ZMQ_PUBLISHER_ADDR   			    "tcp://*:5565"
 #define ZMQ_SUBSCRIBER_ADDR   			  "tcp://localhost:5570"
 
 #define PARAM_TABLES            "tables"
