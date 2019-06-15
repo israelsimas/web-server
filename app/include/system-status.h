@@ -13,7 +13,12 @@
 #ifndef SYTEM_STATUS_H_
 #define SYTEM_STATUS_H_
 
+#if 1
 #define DEFAULT_INTERFACE "eth0"
+#else
+#define DEFAULT_INTERFACE "wlp3s0"
+#endif
+
 #define INVALID_IP        "0"
 #define SIZE_STR_GATEWAY  40
 #define SIZE_STR_MAC      40

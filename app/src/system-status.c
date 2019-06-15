@@ -191,7 +191,7 @@ static char *getIfaddr(char *pchIfName, int typeINET) {
 
 static char *getMaskaddr(char *pchIfName, int typeINET) {
 	struct ifaddrs *ifap, *ifa;
-  char *addr = NULL;
+  char *pchAddr = NULL;
   char *ret_addr;
 
   getifaddrs (&ifap);
@@ -199,21 +199,31 @@ static char *getMaskaddr(char *pchIfName, int typeINET) {
     if ((o_strcmp(ifa->ifa_name, pchIfName) == 0) && (ifa->ifa_addr->sa_family == typeINET)) {
 
       if (typeINET == AF_INET) {
+        char *pchMask;
         struct sockaddr_in *sa = (struct sockaddr_in *) ifa->ifa_netmask;
-        addr = inet_ntoa(sa->sin_addr);
+        pchMask = inet_ntoa(sa->sin_addr);
+        if (pchMask) {
+          pchAddr = o_strdup(pchMask);
+        }
       } else {
+        char pchMask[50];
         struct sockaddr_in6 *sa = (struct sockaddr_in6 *) ifa->ifa_netmask;
-        inet_ntop(AF_INET6, (void *) &sa->sin6_addr, addr, (sizeof(char) * 16));
+
+        memset(pchMask, 0, 50);
+        inet_ntop(AF_INET6, (void *) &sa->sin6_addr, pchMask, (sizeof(char) * 50));
+        if (o_strlen(pchMask)) {
+          pchAddr = o_strdup(pchMask);
+        }        
       }
       break;
     }
   }
   freeifaddrs(ifap);
 
-	if (!addr)
-	  addr = o_strdup("255.255.255.0");
+	if (!pchAddr)
+	  pchAddr = o_strdup("255.255.255.0");
 
-	return addr;
+	return pchAddr;
 }
 
 static int getInterfaceType(char *pchIfName, BOOL isIPv6) {
@@ -224,7 +234,7 @@ static int getInterfaceType(char *pchIfName, BOOL isIPv6) {
   int interfaceType = 0;
   struct _h_result result;
 
-  if (!o_strcmp(pchIfName, "eth0")) {
+  if (!o_strcmp(pchIfName, DEFAULT_INTERFACE)) {
     pchTable = "TAB_NET_ETH_WAN";
     if (isIPv6) {
       pchParamDHCP = "ETHActivateDHCPClientIPv6";      
@@ -240,7 +250,7 @@ static int getInterfaceType(char *pchIfName, BOOL isIPv6) {
     }
   }
 
-  pchQuery = msprintf("SELECT GROUP_CONCAT( %s, ',' ) as dhcp FROM %s",pchTable, pchParamDHCP);
+  pchQuery = msprintf("SELECT GROUP_CONCAT( %s, ',' ) as dhcp FROM %s", pchParamDHCP, pchTable);
   if (h_query_select(pConnDB, pchQuery, &result) == H_OK) {
     if (result.nb_rows == 1 && result.nb_columns == 1) {
       interfaceType = ((struct _h_type_int *)result.data[0][0].t_data)->value;
@@ -309,9 +319,9 @@ void get_dns_servers(char **ppchDns1, char **ppchDns2, BOOL isIPv6) {
   BOOL bDNS1 = TRUE;
 
   if (isIPv6) {
-    pf = popen("/etc/resolvIPv6.conf", "r");  
+    pf = popen("cat /etc/resolvIPv6.conf", "r");  
   } else {
-    pf = popen("/etc/resolvIPv4.conf", "r");
+    pf = popen("cat /etc/resolvIPv4.conf", "r");
   }
 
   if (!pf) {
