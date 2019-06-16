@@ -15,6 +15,7 @@
 #include <jansson.h>
 #include <misc.h>
 #include <system-status.h>
+#include <system-request.h>
 #include <ifaddrs.h>
 #include <unistd.h>
 #include <arpa/inet.h>
@@ -39,25 +40,40 @@ FILE *pFileContacts = NULL;
 FILE *pFileFirmware = NULL;
 struct _h_connection *connDatabase;
 BOOL bValidFirmware = TRUE;
+int statusFirmware = FIRMWARE_VALID;
 
 void initFileProcess(struct _h_connection *connDB) {
   connDatabase = connDB;
 }
 
+int getFirmwareStatus() {
+  return statusFirmware;
+}
+
 static BOOL isValidFirmware(const char *data) {
   FIRMWARE_HEADER *pFirmHeader;
   SYSTEM_GENERAL *pSystem = getSystemGeneral();
+  char *pchData = data;
 
-  pFirmHeader = (FIRMWARE_HEADER *)data;
+  pchData++;
+  pFirmHeader = (FIRMWARE_HEADER *)pchData;
+  
+  if (data[0] != FIRMWARE_HEADER_BYTE) {
+    statusFirmware = FIRMWARE_INVALID_FILE;
+    return FALSE;
+  }
 
   if (pSystem->dev_id != pFirmHeader->dev_id) {
+    statusFirmware = FIRMWARE_INVALID_PRODUCT;
     return FALSE;
   }
 
   if ((pSystem->wMajor == pFirmHeader->major) && (pSystem->wMinor == pFirmHeader->minor) && (pSystem->wPatch == pFirmHeader->patch) ) {
+    statusFirmware = FIRMWARE_INVALID_VERSION;
     return FALSE;
   }
 
+  statusFirmware = FIRMWARE_VALID;
   return TRUE;
 }
 
@@ -172,6 +188,9 @@ void loadUploadFile(const char *data, uint64_t off, size_t size, E_UPLOAD_FILE_T
 
     if (eType == UPLOAD_FILE_FIRMWARE) {
       bValidFirmware = isValidFirmware(data);
+      if (bValidFirmware) {
+        stopAppsSystem();
+      }
     }
 
   } else if ((eType == UPLOAD_FILE_FIRMWARE) && !bValidFirmware) {
@@ -300,7 +319,7 @@ void updateLogo() {
 
 void updatePatch() {
 
-  char *pchCmd = msprintf("cp %s /data/images/", UPLOAD_FILENAME_PATCH);
+  char *pchCmd = NULL;
   SYSTEM_GENERAL *pSystem = getSystemGeneral();
 
   pchCmd = msprintf("rm -rf /data/patch ; mkdir /data/patch ; openssl enc -k SIRIUS_INTELBRAS -d -aes256 -in %s | tar x -C /data/patch", UPLOAD_FILENAME_PATCH);
@@ -320,17 +339,56 @@ void updateContacts() {
   system("rm /tmp/contacts.xml");
 }
 
+static char *getFreePartition() {
+
+  FILE *pf;
+  char *pchPartion = PARTITION_1;
+  char pchCmdRet[SIZE_STR_PARTITION];
+
+   pf = popen("fw_printenv rootfspart | cut -d\"=\" -f2'", "r");
+   if (pf) {
+
+    memset(pchCmdRet, 0, SIZE_STR_PARTITION);
+    fgets(pchCmdRet, SIZE_STR_PARTITION, pf);
+
+    if (o_strcmp(pchCmdRet, "rootfs") == 0) {
+      pchPartion = PARTITION_2;
+    } else {
+      pchPartion = PARTITION_1;
+    }
+    pclose(pf);
+  }  
+
+  return pchPartion;
+}
+
 int updateFirmware() {
 
   int status = SUCCESS;
+  char *pchCmd = NULL;
 
-  if (bValidFirmware) {
-    return SUCCESS;
-  } else {
-    status = ERROR;
-  }
-
-  system("rm /run/firmware.bin");
+  pchCmd = msprintf("burn-firmware  -f %s -p %s &", UPLOAD_FILENAME_FIRMWARE, getFreePartition());
+  system(pchCmd);
+  o_free(pchCmd);
 
   return status;
+}
+
+void closeFwupdate() {
+  system("rm /run/firmware.bin");
+}
+
+void stopAppsSystem() {
+  // system("/etc/rc5.d/S95control-call lock && killall control-call");
+  // system("/etc/rc5.d/S91dspg_apps stop");
+  // system("/etc/rc5.d/S93handset lock && killall handset");
+  // system("/etc/rc5.d/S87middleware-zeromq stop");
+  system("echo \"-1\" > /tmp/burningPercent");
+}
+
+void restartAppsSystem() {
+  // system("/etc/rc5.d/S87middleware-zeromq restart");
+  // system("/etc/rc5.d/S91dspg_apps start");
+  // system("/etc/rc5.d/S93handset unlock");
+  // system("/etc/rc5.d/S95control-call unlock");
 }

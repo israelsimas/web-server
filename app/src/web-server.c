@@ -112,8 +112,11 @@ int main(int argc, char **argv) {
   ulfius_add_endpoint_by_val(&instance, "GET", CHANGE_PARTITION_REQUEST, NULL, 0, &callback_change_partition, NULL);
   ulfius_add_endpoint_by_val(&instance, "GET", CAPTURE_LOG_REQUEST, NULL, 0, &callback_capture_log, NULL);
   ulfius_add_endpoint_by_val(&instance, "GET", STATUS_FW_CLOUD_REQUEST, NULL, 0, &callback_status_fw_cloud, NULL);
-  ulfius_add_endpoint_by_val(&instance, "GET", UPDATE_FW_CLOUD_REQUEST, NULL, 0, &callback_update_fw_cloud, NULL);
+  ulfius_add_endpoint_by_val(&instance, "GET", UPDATE_FW_CLOUD_REQUEST, NULL, 0, &callback_update_fw_cloud, NULL);  
   ulfius_add_endpoint_by_val(&instance, "GET", BACKUP_REQUEST, NULL, 0, &callback_backup, NULL);
+  ulfius_add_endpoint_by_val(&instance, "GET", SAVE_FW_REQUEST, NULL, 0, &callback_save_fw, NULL); 
+  ulfius_add_endpoint_by_val(&instance, "GET", BURN_FW_REQUEST, NULL, 0, &callback_burn_fw, NULL);  
+  ulfius_add_endpoint_by_val(&instance, "GET", END_FW_REQUEST, NULL, 0, &callback_end_fw, NULL);
   ulfius_add_endpoint_by_val(&instance, "POST", RESTART_REQUEST, NULL, 0, &callback_restart, NULL);
   ulfius_add_endpoint_by_val(&instance, "POST", RESTART_SYSLOG_REQUEST, NULL, 0, &callback_restart_syslog, NULL);
   ulfius_add_endpoint_by_val(&instance, "POST", FACTORY_RESET_REQUEST, NULL, 0, &callback_factory_reset, NULL);
@@ -694,24 +697,7 @@ int callback_update_fw_cloud(const struct _u_request *request, struct _u_respons
   } else {
     return U_CALLBACK_CONTINUE;
   } 
-}
-  // json_t *pResult;
-  // char *pchResponseBody;
-
-  // pResult = json_array();    
-  // if (pResult) {  
-  //   getGeneralStatus(&pResult);
-  //   pchResponseBody = json_dumps(pResult, JSON_INDENT(2));
-  //   json_decref(pResult); 
-
-  //   ulfius_set_string_body_response(response, HTTP_SC_OK, pchResponseBody);
-
-  //   o_free(pchResponseBody);
-
-  //   return U_CALLBACK_COMPLETE;
-  // } else {
-  //   return U_CALLBACK_CONTINUE;
-  // } 
+} 
 
 int callback_restart(const struct _u_request *request, struct _u_response *response, void *user_data) {
 
@@ -751,6 +737,57 @@ int callback_set_language(const struct _u_request *request, struct _u_response *
   ulfius_set_string_body_response(response, HTTP_SC_OK, NULL);
 
   return U_CALLBACK_COMPLETE;
+}
+
+int callback_save_fw(const struct _u_request *request, struct _u_response *response, void *user_data) {
+
+  ulfius_set_string_body_response(response, HTTP_SC_OK, NULL);
+
+  return U_CALLBACK_COMPLETE;  
+}
+
+int callback_burn_fw(const struct _u_request *request, struct _u_response *response, void *user_data) {
+
+  char *pchResponseBody;
+  int status;
+
+  status = getFirmwareStatus();
+  switch(status) {
+
+    case FIRMWARE_VALID:
+      updateFirmware();
+      break;
+    
+    case FIRMWARE_INVALID_FILE:
+      pchResponseBody = msprintf("Arquivo de Firmware Inválido");
+      break;
+
+    case FIRMWARE_INVALID_PRODUCT:
+      pchResponseBody = msprintf("Arquivo de Firmware Inválido para este produto");
+      break;
+
+    case FIRMWARE_INVALID_VERSION:
+      pchResponseBody = msprintf("Mesma versão");
+      break;
+
+    default:
+      pchResponseBody = msprintf("Arquivo de Firmware Inválido");
+      break; 
+  }  
+
+  ulfius_set_string_body_response(response, HTTP_SC_OK, pchResponseBody);
+
+  o_free(pchResponseBody);
+
+  return U_CALLBACK_COMPLETE;  
+}
+
+int callback_end_fw(const struct _u_request *request, struct _u_response *response, void *user_data) {
+
+  closeFwupdate();
+  ulfius_set_string_body_response(response, HTTP_SC_OK, NULL);
+
+  return U_CALLBACK_COMPLETE;  
 }
 
 const char *getFilenameExt(const char *pchPath) {
@@ -941,15 +978,9 @@ int callback_upload_file (const struct _u_request * request, struct _u_response 
         updateRing(pchValue);
       }
     } else if (!o_strcmp(pchValue, "loadFirmware")) {
-      int status;
       
       closeUploadFile(UPLOAD_FILE_FIRMWARE);
-      status = updateFirmware();
-      if (status == SUCCESS) {
-        pchResponseBody = msprintf("Change from v2.0.0 to v2.0.2 <br/>Stored on partition 1<br/>Restarting the device!");
-      } else {
-        pchResponseBody = msprintf("Its not a firmware file");
-      }
+
     } else {
       LOG_ERROR("Invalid file");
     }

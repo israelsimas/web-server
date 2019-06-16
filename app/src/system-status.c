@@ -44,6 +44,7 @@ static void loadSystemGeneral(SYSTEM_GENERAL *pSystemGeneral) {
 	getConfig(CFG_PRODUCT_VERSION, &pSystemGeneral->pchVersion, TYPE_STRING);
 	getConfig(CFG_BRANCH, &pSystemGeneral->pchBranch, TYPE_STRING);
 	getConfig(CFG_DATABASE, &pSystemGeneral->pchDatabasePath, TYPE_STRING);
+  getConfig(CFG_DEV_ID, &pSystemGeneral->dev_id, TYPE_WORD);
 
   o_strcpy(pchVersion, pSystemGeneral->pchVersion);
   pchToken = strtok(pchVersion, ".");

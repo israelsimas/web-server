@@ -39,6 +39,7 @@
 #define CFG_PRODUCT_VERSION     "general:version"
 #define CFG_BRANCH		  		"general:branch"
 #define CFG_DATABASE	  		"general:database_path"
+#define CFG_DEV_ID	  		"general:dev_id"
 
 // Handset Phone
 #define CFG_HANDSET_TYPE      "handset%d:type"

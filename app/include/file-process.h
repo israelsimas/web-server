@@ -28,6 +28,10 @@
 
 #define INVALID_RING_PK 0
 
+#define FIRMWARE_HEADER_BYTE  0x55
+
+#define SIZE_STR_PARTITION  10
+
 /**************************************************************************
  * TYPEDEFS
  **************************************************************************/
@@ -52,6 +56,14 @@ typedef struct FIRMWARE_HEADER {
 	unsigned short patch;
 } FIRMWARE_HEADER;
 
+typedef enum {
+	FIRMWARE_VALID			        = 0,
+  FIRMWARE_INVALID_FILE			  = -1,
+	FIRMWARE_INVALID_PRODUCT	  = -2,
+	FIRMWARE_INVALID_VERSION	  = -3,
+} E_FIRMWARE_STATUS;
+
+
 /**************************************************************************
  * INTERNAL FUNCTIONS
  **************************************************************************/
@@ -72,6 +84,14 @@ void updatePatch();
 
 void updateContacts();
 
+int getFirmwareStatus();
+
 int updateFirmware();
+
+void stopAppsSystem();
+
+void restartAppsSystem();
+
+void closeFwupdate();
 
 #endif

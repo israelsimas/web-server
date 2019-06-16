@@ -57,7 +57,10 @@
 #define STATUS_FW_CLOUD_REQUEST "/statusFwCloud.cgi"
 #define UPDATE_FW_CLOUD_REQUEST "/updateFwCloud.cgi"
 #define BACKUP_REQUEST          "/backup.cgi"
-#define UPLOAD_CONFIG_REQUEST    "/upload_file.cgi"
+#define UPLOAD_CONFIG_REQUEST   "/upload_file.cgi"
+#define SAVE_FW_REQUEST         "/saveFirmware.cgi"
+#define BURN_FW_REQUEST         "/burn_firmware.cgi"
+#define END_FW_REQUEST         "/end_burnfirmware.cgi"
 
 #define CONFIG_FILE             "/data/config.db"
 
@@ -260,6 +263,21 @@ int callback_static_file(const struct _u_request *request, struct _u_response *r
  * Callback function used to serve backup file
  */ 
 int callback_backup(const struct _u_request *request, struct _u_response *response, void *user_data);
+
+/*
+ * Callback function used save Firmware
+ */
+int callback_save_fw(const struct _u_request *request, struct _u_response *response, void *user_data);
+
+/*
+ * Callback function used burn Firmware
+ */
+int callback_burn_fw(const struct _u_request *request, struct _u_response *response, void *user_data);
+
+/*
+ * Callback function used end Firmware update
+ */
+int callback_end_fw(const struct _u_request *request, struct _u_response *response, void *user_data);
 
 /*
  * Default callback function called if no endpoint has a match
