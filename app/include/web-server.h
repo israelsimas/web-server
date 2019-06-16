@@ -33,6 +33,8 @@
 #define TEMPLATE_FILE_NAME_GZIP_PATH   "%s%s.gz"
 #define TEMPLATE_FILE_NAME_PATH   "%s%s"
 
+#define FILE_PREFIX "/upload"
+
 #define DATABASE_REQUEST  "/db.cgi"
 #define STATUS_REQUEST    "/status.cgi"
 #define ENDPOINT_STATUS_REQUEST "/endpoint_status.cgi"
@@ -260,6 +262,9 @@ int callback_backup(const struct _u_request *request, struct _u_response *respon
  * Default callback function called if no endpoint has a match
  */
 int callback_default(const struct _u_request *request, struct _u_response *response, void *user_data);
+
+// Callback function used to upload file
+int callback_upload_file (const struct _u_request * request, struct _u_response * response, void * user_data);
 
 /*
  * Return the filename extension

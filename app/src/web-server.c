@@ -112,7 +112,8 @@ int main(int argc, char **argv) {
   ulfius_add_endpoint_by_val(&instance, "POST", RESTART_SYSLOG_REQUEST, NULL, 0, &callback_restart_syslog, NULL);
   ulfius_add_endpoint_by_val(&instance, "POST", FACTORY_RESET_REQUEST, NULL, 0, &callback_factory_reset, NULL);
   ulfius_add_endpoint_by_val(&instance, "POST", LOGO_RESET_REQUEST, NULL, 0, &callback_logo_reset, NULL);
-  ulfius_add_endpoint_by_val(&instance, "POST", SET_LANGUAGE_REQUEST, NULL, 0, &callback_set_language, NULL);  
+  ulfius_add_endpoint_by_val(&instance, "POST", SET_LANGUAGE_REQUEST, NULL, 0, &callback_set_language, NULL); 
+  ulfius_add_endpoint_by_val(&instance, "*", FILE_PREFIX, NULL, 1, &callback_upload_file, NULL); 
   ulfius_add_endpoint_by_val(&instance, "GET", "*", NULL, 1, &callback_static_file, &mime_types);
   
   // default_endpoint declaration
@@ -869,6 +870,51 @@ int callback_backup(const struct _u_request *request, struct _u_response *respon
     }
   }
   
+  return U_CALLBACK_CONTINUE;
+}
+
+char * print_map(const struct _u_map * map) {
+  char * line, * to_return = NULL;
+  const char **keys, * value;
+  int len, i;
+  if (map != NULL) {
+    keys = u_map_enum_keys(map);
+    for (i=0; keys[i] != NULL; i++) {
+      value = u_map_get(map, keys[i]);
+      len = snprintf(NULL, 0, "key is %s, length is %zu, value is %.*s", keys[i], u_map_get_length(map, keys[i]), (int)u_map_get_length(map, keys[i]), value);
+      line = o_malloc((len+1)*sizeof(char));
+      snprintf(line, (len+1), "key is %s, length is %zu, value is %.*s", keys[i], u_map_get_length(map, keys[i]), (int)u_map_get_length(map, keys[i]), value);
+      if (to_return != NULL) {
+        len = o_strlen(to_return) + o_strlen(line) + 1;
+        to_return = o_realloc(to_return, (len+1)*sizeof(char));
+        if (o_strlen(to_return) > 0) {
+          strcat(to_return, "\n");
+        }
+      } else {
+        to_return = o_malloc((o_strlen(line) + 1)*sizeof(char));
+        to_return[0] = 0;
+      }
+      strcat(to_return, line);
+      o_free(line);
+    }
+    return to_return;
+  } else {
+    return NULL;
+  }
+}
+
+int callback_upload_file (const struct _u_request * request, struct _u_response * response, void * user_data) {
+  char *url_params = print_map(request->map_url), *headers = print_map(request->map_header), *cookies = print_map(request->map_cookie), *post_params = print_map(request->map_post_body);
+
+  char *string_body = msprintf("Upload file\n\n  method is %s\n  url is %s\n\n  parameters from the url are \n%s\n\n  cookies are \n%s\n\n  headers are \n%s\n\n  post parameters are \n%s\n\n",
+                                  request->http_verb, request->http_url, url_params, cookies, headers, post_params);
+  ulfius_set_string_body_response(response, 200, string_body);
+  o_free(url_params);
+  o_free(headers);
+  o_free(cookies);
+  o_free(post_params);
+  o_free(string_body);
+
   return U_CALLBACK_CONTINUE;
 }
 
