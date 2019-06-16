@@ -927,6 +927,7 @@ int callback_upload_file (const struct _u_request * request, struct _u_response 
       updateConfig();
     } else if (!o_strcmp(pchValue, "importLogo")) {
       closeUploadFile(UPLOAD_FILE_LOGO);
+      updateLogo();
     } else if (!o_strcmp(pchValue, "importPatch")) {
       closeUploadFile(UPLOAD_FILE_PATCH);
     } else if (!o_strcmp(pchValue, "addRing")) {

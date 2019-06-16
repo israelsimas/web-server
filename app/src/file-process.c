@@ -247,3 +247,13 @@ void updateRing(char *pchRingName) {
 
   system("rm /tmp/ring.wav");
 }
+
+void updateLogo() {
+
+  char *pchCmd = msprintf("cp %s /data/images/", UPLOAD_FILENAME_LOGO);
+
+  system(pchCmd);
+  o_free(pchCmd);
+  
+  system("rm /tmp/logo.bmp");
+}
