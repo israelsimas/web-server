@@ -44,7 +44,20 @@ void initFileProcess(struct _h_connection *connDB) {
   connDatabase = connDB;
 }
 
-static BOOL isValidFirmware() {
+static BOOL isValidFirmware(const char *data) {
+  FIRMWARE_HEADER *pFirmHeader;
+  SYSTEM_GENERAL *pSystem = getSystemGeneral();
+
+  pFirmHeader = (FIRMWARE_HEADER *)data;
+
+  if (pSystem->dev_id != pFirmHeader->dev_id) {
+    return FALSE;
+  }
+
+  if ((pSystem->wMajor == pFirmHeader->major) && (pSystem->wMinor == pFirmHeader->minor) && (pSystem->wPatch == pFirmHeader->patch) ) {
+    return FALSE;
+  }
+
   return TRUE;
 }
 
@@ -158,7 +171,7 @@ void loadUploadFile(const char *data, uint64_t off, size_t size, E_UPLOAD_FILE_T
     updateFileUpload(eType, pFile);
 
     if (eType == UPLOAD_FILE_FIRMWARE) {
-      bValidFirmware = isValidFirmware();
+      bValidFirmware = isValidFirmware(data);
     }
 
   } else if ((eType == UPLOAD_FILE_FIRMWARE) && !bValidFirmware) {

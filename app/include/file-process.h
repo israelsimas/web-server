@@ -44,6 +44,13 @@ typedef enum {
   UPLOAD_FILE_FIRMWARE
 } E_UPLOAD_FILE_TYPE;
 
+typedef struct FIRMWARE_HEADER {
+	unsigned int vendor;
+	unsigned int dev_id;
+	unsigned short major;
+	unsigned short minor;
+	unsigned short patch;
+} FIRMWARE_HEADER;
 
 /**************************************************************************
  * INTERNAL FUNCTIONS

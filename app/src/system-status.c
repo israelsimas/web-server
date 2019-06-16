@@ -47,11 +47,11 @@ static void loadSystemGeneral(SYSTEM_GENERAL *pSystemGeneral) {
 
   o_strcpy(pchVersion, pSystemGeneral->pchVersion);
   pchToken = strtok(pchVersion, ".");
-  pSystemGeneral->pchswMajor = o_strdup(pchToken);
+  pSystemGeneral->wMajor = atoi(pchToken);
   pchToken = strtok(NULL, ".");
-  pSystemGeneral->swMinor = o_strdup(pchToken);
+  pSystemGeneral->wMinor = atoi(pchToken);
   pchToken = strtok(NULL, ".");
-  pSystemGeneral->swPatch = o_strdup(pchToken);
+  pSystemGeneral->wPatch = atoi(pchToken);
 }
 
 void initSystemGeneral(struct _h_connection *pConn) {
@@ -589,9 +589,9 @@ BOOL getStatusSystem(json_t **j_result) {
   sprintf(pchDate, "%d:%d:%d", tm.tm_hour/12, tm.tm_min, tm.tm_sec);
   json_object_set_new(j_data, "time12h", json_string(pchDate));
 
-  json_object_set_new(j_data, "swMajor", json_string(systemGeneral.pchswMajor));
-  json_object_set_new(j_data, "swMinor", json_string(systemGeneral.swMinor));  
-  json_object_set_new(j_data, "swPatch", json_string(systemGeneral.swPatch));  
+  json_object_set_new(j_data, "swMajor", json_integer(systemGeneral.wMajor));
+  json_object_set_new(j_data, "swMinor", json_integer(systemGeneral.wMinor));  
+  json_object_set_new(j_data, "swPatch", json_integer(systemGeneral.wPatch));  
 
   json_object_set_new(j_data, "hwVersion", json_string("1")); // default hardware
 

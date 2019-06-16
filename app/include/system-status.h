@@ -41,10 +41,11 @@ typedef struct SYSTEM_GENERAL {
   char *pchBranch;
   char *pchDatabasePath;
   char *pchVersion;
-  char *pchswMajor;
-  char *swMinor;
-  char *swPatch;   
+  WORD wMajor;
+  WORD wMinor;
+  WORD wPatch;   
   int accountNumber;
+  int dev_id;
 } SYSTEM_GENERAL;
 
 /**************************************************************************
