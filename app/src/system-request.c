@@ -136,3 +136,13 @@ void startCaptureLog() {
 void stopCaptureLog() {
   system("killall tcpdump");
 }
+
+int getAutoprovXML(char **ppchBuffer) {
+
+  int body_length = 0;
+
+  *ppchBuffer = msprintf("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n <root> <test>3</test> </root>");
+  body_length = o_strlen(*ppchBuffer);
+
+  return body_length;
+}

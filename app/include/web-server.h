@@ -61,6 +61,7 @@
 #define BURN_FW_REQUEST         "/burn_firmware.cgi"
 #define END_FW_REQUEST          "/end_burnfirmware.cgi"
 #define BURN_STATUS_REQUEST     "/burn_status.cgi"
+#define EXPORT_AUTOPROV_XML     "/export_autoprovisioning.cgi"
 
 #define CONFIG_FILE             "/data/config.db"
 
@@ -278,6 +279,11 @@ int callback_burn_fw(const struct _u_request *request, struct _u_response *respo
  * Callback function used end Firmware update
  */
 int callback_end_fw(const struct _u_request *request, struct _u_response *response, void *user_data);
+
+/*
+ * Callback function used to get XML from database 
+ */ 
+int callback_export_autoprov(const struct _u_request *request, struct _u_response *response, void *user_data);
 
 /*
  * Default callback function called if no endpoint has a match

@@ -57,4 +57,6 @@ void startCaptureLog();
 
 void stopCaptureLog();
 
+int getAutoprovXML(char **ppchBuffer);
+
 #endif
