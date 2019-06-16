@@ -56,7 +56,10 @@
 #define CAPTURE_LOG_REQUEST     "/captureLog.cgi"
 #define STATUS_FW_CLOUD_REQUEST "/statusFwCloud.cgi"
 #define UPDATE_FW_CLOUD_REQUEST "/updateFwCloud.cgi"
-#define BACKUP_REQUEST          "backup.cgi"
+#define BACKUP_REQUEST          "/backup.cgi"
+#define UPLOAD_CONFIG_REQUEST    "/upload_file.cgi"
+
+#define CONFIG_FILE             "/data/config.db"
 
 #define NOT_FOUND_MESSAGE "Page not found, do what you want"
 

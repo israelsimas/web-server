@@ -28,6 +28,9 @@
 
 struct _h_connection *connDB;
 char *pchWhitelist[NUMBER_WHITE_LIST_COMMANDS] = {"select", "update", "insert", "delete", "begin transaction", "end transaction", "commit"};
+FILE *pFileConfig = NULL;
+BOOL bUploadConfig = FALSE;
+BOOL bUploadFirmware = FALSE;
 
 char *readFile(const char *pchFilename) {
 
@@ -117,7 +120,7 @@ int main(int argc, char **argv) {
   ulfius_add_endpoint_by_val(&instance, "POST", FACTORY_RESET_REQUEST, NULL, 0, &callback_factory_reset, NULL);
   ulfius_add_endpoint_by_val(&instance, "POST", LOGO_RESET_REQUEST, NULL, 0, &callback_logo_reset, NULL);
   ulfius_add_endpoint_by_val(&instance, "POST", SET_LANGUAGE_REQUEST, NULL, 0, &callback_set_language, NULL); 
-  ulfius_add_endpoint_by_val(&instance, "*", FILE_PREFIX, NULL, 1, &callback_upload_file, NULL); 
+  ulfius_add_endpoint_by_val(&instance, "POST", UPLOAD_CONFIG_REQUEST, NULL, 1, &callback_upload_file, NULL); 
   ulfius_add_endpoint_by_val(&instance, "GET", "*", NULL, 1, &callback_static_file, &mime_types);
   
   // default_endpoint declaration
@@ -912,6 +915,29 @@ int callback_upload_file (const struct _u_request * request, struct _u_response 
 
   char *string_body = msprintf("Upload file\n\n  method is %s\n  url is %s\n\n  parameters from the url are \n%s\n\n  cookies are \n%s\n\n  headers are \n%s\n\n  post parameters are \n%s\n\n",
                                   request->http_verb, request->http_url, url_params, cookies, headers, post_params);
+
+  if (bUploadConfig && pFileConfig) {
+    char *pchMac = getMac();
+    char *pchQuery;
+
+    bUploadConfig = FALSE;
+    fclose(pFileConfig);
+    pFileConfig = NULL;
+
+    if (pchMac) {
+      system("rm /data/database.sql && sync");
+      system("openssl enc -aes-256-cbc -d -in /tmp/config.db -out /data/database.sql -k SIRIUS_INTELBRAS");
+      pchQuery = msprintf("UPDATE TAB_NET_ETH_WAN SET ETHMAC = '%s'", pchMac);
+      h_query_update(connDB, pchQuery);
+      o_free(pchQuery);
+    }
+
+  } else if (bUploadFirmware && pFileConfig) {
+    bUploadFirmware = FALSE;
+    fclose(pFileConfig);
+    pFileConfig = NULL;
+  }
+
   ulfius_set_string_body_response(response, 200, string_body);
   o_free(url_params);
   o_free(headers);
@@ -931,7 +957,40 @@ int file_upload_callback (const struct _u_request * request,
                           uint64_t off, 
                           size_t size, 
                           void * cls) {
-  LOG("Got from file '%s' of the key '%s', offset %llu, size %zu, cls is '%s'", filename, key, off, size, cls);
+  // LOG("Got from file '%s' of the key '%s', offset %llu, size %zu, cls is '%s'", filename, key, off, size, cls);
+
+  if (o_strstr(filename, ".db")) {
+
+    if (off == 0) {
+
+      system("rm /tmp/config.db");
+
+      pFileConfig = fopen("/tmp/config.db", "w");
+      if (pFileConfig) {
+        fwrite(data, size, 1, pFileConfig);
+        bUploadConfig = TRUE;
+      }
+    } else if (pFileConfig) {
+      fwrite(data, size, 1, pFileConfig);
+    }
+
+  } else if (o_strstr(filename, ".bin")) {
+
+    if (off == 0) {
+
+      system("rm /tmp/config.db");
+
+      pFileConfig = fopen("/tmp/config.db", "w");
+      if (pFileConfig) {
+        fwrite(data, size, 1, pFileConfig);
+        bUploadFirmware = TRUE;
+      }
+    } else if (pFileConfig) {
+      fwrite(data, size, 1, pFileConfig);
+    }
+
+  }
+
   return U_OK;
 }
 

@@ -57,6 +57,8 @@ SYSTEM_GENERAL *getSystemGeneral();
 
 char *getActiveInterface();
 
+char *getMac();
+
 BOOL getRegisterStatusAccount(json_t ** j_result, WORD wAccount);
 
 BOOL getEndpointFreeStatus(json_t ** j_result);

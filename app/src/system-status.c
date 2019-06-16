@@ -366,7 +366,7 @@ static char *getIfGateway(char *pchIfName, BOOL isIPv6) {
   return pchGateway;
 }
 
-static char *getMac() {
+char *getMac() {
 
   char *pchMAC = NULL;
 	FILE *pf;
