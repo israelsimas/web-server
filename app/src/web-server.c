@@ -909,13 +909,10 @@ char * print_map(const struct _u_map * map) {
 }
 
 int callback_upload_file (const struct _u_request * request, struct _u_response * response, void * user_data) {
-  char *url_params = print_map(request->map_url), *headers = print_map(request->map_header), *cookies = print_map(request->map_cookie), *post_params = print_map(request->map_post_body);
-
-  char *string_body = msprintf("Upload file\n\n  method is %s\n  url is %s\n\n  parameters from the url are \n%s\n\n  cookies are \n%s\n\n  headers are \n%s\n\n  post parameters are \n%s\n\n",
-                                  request->http_verb, request->http_url, url_params, cookies, headers, post_params);
 
   const char **ppKeys;
   const char *pchValue;
+  char *pchResponseBody = NULL;
 
   ppKeys = u_map_enum_keys(request->map_url);
 
@@ -944,19 +941,22 @@ int callback_upload_file (const struct _u_request * request, struct _u_response 
         updateRing(pchValue);
       }
     } else if (!o_strcmp(pchValue, "loadFirmware")) {
+      int status;
+      
       closeUploadFile(UPLOAD_FILE_FIRMWARE);
-      updateFirmware();
+      status = updateFirmware();
+      if (status == SUCCESS) {
+        pchResponseBody = msprintf("Change from v2.0.0 to v2.0.2 <br/>Stored on partition 1<br/>Restarting the device!");
+      } else {
+        pchResponseBody = msprintf("Its not a firmware file");
+      }
     } else {
       LOG_ERROR("Invalid file");
     }
   }
 
-  ulfius_set_string_body_response(response, 200, NULL);
-  o_free(url_params);
-  o_free(headers);
-  o_free(cookies);
-  o_free(post_params);
-  o_free(string_body);
+  ulfius_set_string_body_response(response, 200, pchResponseBody);
+  o_free(pchResponseBody);
 
   return U_CALLBACK_CONTINUE;
 }

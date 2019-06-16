@@ -65,6 +65,6 @@ void updatePatch();
 
 void updateContacts();
 
-void updateFirmware();
+int updateFirmware();
 
 #endif

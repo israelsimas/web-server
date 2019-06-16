@@ -307,11 +307,17 @@ void updateContacts() {
   system("rm /tmp/contacts.xml");
 }
 
-void updateFirmware() {
+int updateFirmware() {
+
+  int status = SUCCESS;
 
   if (bValidFirmware) {
-
+    return SUCCESS;
+  } else {
+    status = ERROR;
   }
 
   system("rm /run/firmware.bin");
+
+  return status;
 }
