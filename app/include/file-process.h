@@ -19,7 +19,7 @@
 
 #define UPLOAD_FILENAME_CONFIG    "/tmp/config.db"
 #define UPLOAD_FILENAME_LOGO      "/tmp/logo.bmp"
-#define UPLOAD_FILENAME_PATCH     "/tmp/config.db"
+#define UPLOAD_FILENAME_PATCH     "/data/patch_new.patch"
 #define UPLOAD_FILENAME_RING      "/tmp/ring.wav"
 #define UPLOAD_FILENAME_FIRMWARE  "/tmp/config.db"
 
@@ -58,5 +58,7 @@ void updateConfig();
 void updateRing(char *pchRingName);
 
 void updateLogo();
+
+void updatePatch();
 
 #endif

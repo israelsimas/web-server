@@ -254,6 +254,23 @@ void updateLogo() {
 
   system(pchCmd);
   o_free(pchCmd);
-  
+
   system("rm /tmp/logo.bmp");
+}
+
+void updatePatch() {
+
+  char *pchCmd = msprintf("cp %s /data/images/", UPLOAD_FILENAME_PATCH);
+  SYSTEM_GENERAL *pSystem = getSystemGeneral();
+
+  pchCmd = msprintf("rm -rf /data/patch ; mkdir /data/patch ; openssl enc -k SIRIUS_INTELBRAS -d -aes256 -in %s | tar x -C /data/patch", UPLOAD_FILENAME_PATCH);
+  system(pchCmd);
+  o_free(pchCmd);
+
+  pchCmd = msprintf("lua /data/patch/install.lua /data/patch %s %s", pSystem->pchProduct, pSystem->pchVersion);
+  system(pchCmd);
+  o_free(pchCmd);
+
+  system("rm -rf /data/patch");
+  system("rm /data/patch_new.patch");
 }
