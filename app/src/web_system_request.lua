@@ -205,10 +205,261 @@ function exportContacts(export_ids)
   file:close()
 end
 
+function getAvailableIds(isBlacklist, cnx)
+
+	local selectSql = nil
+
+	if isBlacklist then
+		selectSql = "SELECT IndexPhoneBook FROM TAB_BLACKLIST ORDER BY IndexPhoneBook ASC"
+	else
+		selectSql = "SELECT IndexPhoneBook FROM TAB_PHONEBOOK ORDER BY IndexPhoneBook ASC"
+	end
+
+	local idsResult = DbDriver.executeSelect(selectSql, cnx)
+
+	local prevId, currentId
+	local ids = {}
+
+	for i=1, #idsResult.rows do
+		local continue = true
+
+		-- Preenche buracos entre o 1 e o primeiro id
+		if prevId == nil then
+			prevId = idsResult.rows[i].IndexPhoneBook
+			for i = 1, prevId-1 do
+				table.insert(ids, i)
+			end
+			currentId = prevId
+			continue = false
+		end
+
+		-- Preenche buracos entre o id anterior e o atual
+		if continue then
+			currentId = idsResult.rows[i].IndexPhoneBook
+
+			if prevId ~= (currentId - 1) then
+				for i = (prevId + 1), currentId - 1 do
+					table.insert(ids, i)
+				end
+			end
+
+			prevId = currentId
+		end
+	end
+
+	-- Adiciona o próximo id disponível
+	if currentId == nil then
+		currentId = 1
+	else
+		currentId = currentId + 1
+	end
+
+	table.insert(ids, currentId)
+
+	return ids;
+end
+
+function saveContacts(contacts, isBlacklist, cnx)
+
+	local ids = getAvailableIds(isBlacklist, cnx)
+
+	local x = 1
+	local y = 1
+  local numRings = "12"
+
+  local countSql = "SELECT COUNT(*) as count from TAB_SYSTEM_RING;"
+  local result = DbDriver.executeSelect(countSql, cnx)
+  if result.error then
+    numRings = "12"
+  else
+    if #result.rows >= 1 then
+      numRings = result.rows[1].count
+    end    
+  end
+
+	for i=1, #contacts do
+
+		if not hasContact(contacts[i].IdentificationName,contacts[i].OfficeNumber, isBlacklist, cnx) then
+
+			-- Se contato é novo, gera Id
+			if contacts[i].IndexPhoneBook == nil then
+				local id
+				if x <= #ids then
+					id = ids[x]
+					x = x + 1
+				else
+					id = ids[x-1] + y
+					y = y + 1
+				end
+				contacts[i].IndexPhoneBook = id
+			end
+
+      if contacts[i].DistintiveRing and (tonumber(contacts[i].DistintiveRing) > tonumber(numRings)) then
+        contacts[i].DistintiveRing = "1"
+      end
+
+			if contacts[i].PK then
+				updateContact(contacts[i], isBlacklist, cnx)
+			elseif (contacts[i].IndexPhoneBook < 100) then
+				addContact(contacts[i], isBlacklist, cnx)
+			end
+		end
+	end
+end
+
+function hasContact(name, number, isBlacklist, cnx)
+
+	if (name == nil) then
+		name = ""
+	end
+
+	if (number == nil) then
+		number = ""
+	end
+
+	local tab = nil
+	if isBlacklist then
+		tab = "TAB_BLACKLIST"
+	else
+		tab = "TAB_PHONEBOOK"
+	end
+
+	local selectSql = "SELECT * FROM " .. tab .. " WHERE UPPER(IdentificationName) = UPPER('" ..  name .. "') AND UPPER(OfficeNumber) = UPPER('" .. number .. "');"
+
+	local result = DbDriver.executeSelect(selectSql, cnx)
+
+	if #result.rows >= 1 then
+		return true
+	else
+		return false
+	end
+end
+
+function getContactPK(account, id, isBlacklist, cnx)
+
+	local tablename = nil
+
+	if isBlacklist then
+		tablename = "TAB_BLACKLIST"
+	else
+		tablename = "TAB_PHONEBOOK"
+	end
+
+	if account and id then
+		local selectSql = "SELECT PK FROM ".. tablename .." WHERE Account = " .. account .. " and IndexPhoneBook = " .. id .. " ;"
+
+		local result = DbDriver.executeSelect(selectSql, cnx)
+
+		if result.error then
+			return nil
+		end
+
+		if #result.rows >= 1 then
+			return result.rows[1].PK
+		end
+	end
+
+	return nil
+
+end
+
+function addContact(contact, isBlacklist, cnx)
+
+	if (next(contact) == nil) then
+	  return false
+	end
+
+	local tab = nil
+	if isBlacklist then
+		tab = "TAB_BLACKLIST"
+	else
+		tab = "TAB_PHONEBOOK"
+	end
+
+	local columns
+	local values
+	if contact.Account == nil then
+		contact.Account = 1
+	end
+
+	for k, v in pairs(contact) do
+		if columns then
+			columns = columns .. ", " .. k
+		else
+			columns = k
+		end
+
+		if values then
+			values = values .. ", '" .. v .. "'"
+		else
+			values = "'" .. v .. "'"
+		end
+	end
+
+	local insertSql = "INSERT INTO " .. tab .. " ( " .. columns .. ") VALUES ( " .. values .. " );"
+
+	local result = DbDriver.executeDML(insertSql, cnx);
+	if(result.affected == 1) then
+		return true
+	else
+		return false
+	end
+end
+
+function updateContact(contact, isBlacklist, cnx)
+
+	if next(contact) == nil then
+	  return false
+	end
+
+	local tab;
+	if isBlacklist then
+		tab = "TAB_BLACKLIST"
+	else
+		tab = "TAB_PHONEBOOK"
+	end
+
+	local sets
+
+	for k, v in pairs(contact) do
+		if sets then
+			sets = sets .. ", " .. k .. " = '" .. v .. "'"
+		else
+			sets = k .. " = '" .. v .. "'"
+		end
+	end
+
+	local updateSql = "UPDATE " .. tab .. " SET " .. sets ..  " WHERE PK = ".. contact.PK ..";"
+
+	local result = DbDriver.executeDML(updateSql, cnx);
+	if(result.affected == 1) then
+		return true
+	else
+		return false
+	end
+end
+
+function importContacts(file)
+
+	local f = io.open(file, "r")
+	local content = f:read("*all")
+	f:close()
+
+	local contacts = ContactParse:parseContacts(content)
+	local blacklist = ContactParse:parseBlackList(content)
+
+  require('db_driver')
+	local cnx = Db:getConnection()
+	saveContacts(contacts, false, cnx)
+	saveContacts(blacklist, true, cnx)
+	cnx:commit()
+	cnx:close()
+end
+
 if (arg[1] == "export_autoprov") then
   exportAutoprovisioning()
 elseif (arg[1] == "export_contacts") then
   exportContacts(arg[2])
-elseif (arg[1] == "restart") then
-  restart()
+elseif (arg[1] == "import_contacts") then
+  importContacts(arg[2])
 end
