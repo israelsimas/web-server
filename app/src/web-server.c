@@ -23,14 +23,12 @@
 #include <system-status.h>
 #include <system-request.h>
 #include <middleware.h>
+#include <file-process.h>
 
 #define THIS_FILE "web-server.c"
 
 struct _h_connection *connDB;
 char *pchWhitelist[NUMBER_WHITE_LIST_COMMANDS] = {"select", "update", "insert", "delete", "begin transaction", "end transaction", "commit"};
-FILE *pFileConfig = NULL;
-BOOL bUploadConfig = FALSE;
-BOOL bUploadFirmware = FALSE;
 
 char *readFile(const char *pchFilename) {
 
@@ -74,6 +72,7 @@ int main(int argc, char **argv) {
   }
 
   initSystemGeneral(connDB);
+  initFileProcess(connDB);
 
   openMiddleware();
   
@@ -125,7 +124,6 @@ int main(int argc, char **argv) {
   
   // default_endpoint declaration
   ulfius_set_default_endpoint(&instance, &callback_default, NULL);
-
 
   // Open an http connection
   status = ulfius_start_framework(&instance);
@@ -916,31 +914,31 @@ int callback_upload_file (const struct _u_request * request, struct _u_response 
   char *string_body = msprintf("Upload file\n\n  method is %s\n  url is %s\n\n  parameters from the url are \n%s\n\n  cookies are \n%s\n\n  headers are \n%s\n\n  post parameters are \n%s\n\n",
                                   request->http_verb, request->http_url, url_params, cookies, headers, post_params);
 
-  if (bUploadConfig && pFileConfig) {
-    char *pchMac = getMac();
-    char *pchQuery;
+  const char **ppKeys;
+  const char *pchValue;
 
-    bUploadConfig = FALSE;
-    fclose(pFileConfig);
-    pFileConfig = NULL;
+  ppKeys = u_map_enum_keys(request->map_url);
 
-    if (pchMac) {
-      system("rm /data/database.sql && sync");
-      system("openssl enc -aes-256-cbc -d -in /tmp/config.db -out /data/database.sql -k SIRIUS_INTELBRAS");
-      pchQuery = msprintf("UPDATE TAB_NET_ETH_WAN SET ETHMAC = '%s'", pchMac);
-      h_query_update(connDB, pchQuery);
-      o_free(pchQuery);
+  if (ppKeys[0] && !o_strcmp(ppKeys[0], "action")) {
+    pchValue = u_map_get(request->map_url, ppKeys[0]);
 
-      system("sync && reboot &");
+    if (!o_strcmp(pchValue, "importConfig")) {
+      closeUploadFile(UPLOAD_FILE_CONFIG);
+      updateConfig();
+    } else if (!o_strcmp(pchValue, "importLogo")) {
+      closeUploadFile(UPLOAD_FILE_LOGO);
+    } else if (!o_strcmp(pchValue, "importPatch")) {
+      closeUploadFile(UPLOAD_FILE_PATCH);
+    } else if (!o_strcmp(pchValue, "addRing")) {
+      closeUploadFile(UPLOAD_FILE_RING);
+    } else if (!o_strcmp(pchValue, "loadFirmware")) {
+      closeUploadFile(UPLOAD_FILE_FIRMWARE);
+    } else {
+      LOG_ERROR("Invalid file");
     }
-
-  } else if (bUploadFirmware && pFileConfig) {
-    bUploadFirmware = FALSE;
-    fclose(pFileConfig);
-    pFileConfig = NULL;
   }
 
-  ulfius_set_string_body_response(response, 200, string_body);
+  ulfius_set_string_body_response(response, 200, NULL);
   o_free(url_params);
   o_free(headers);
   o_free(cookies);
@@ -959,38 +957,24 @@ int file_upload_callback (const struct _u_request * request,
                           uint64_t off, 
                           size_t size, 
                           void * cls) {
-  // LOG("Got from file '%s' of the key '%s', offset %llu, size %zu, cls is '%s'", filename, key, off, size, cls);
 
-  if (o_strstr(filename, ".db")) {
+  const char **ppKeys;
 
-    if (off == 0) {
+  if (request->http_url && o_strstr(request->http_url, "action")) {
 
-      system("rm /tmp/config.db");
-
-      pFileConfig = fopen("/tmp/config.db", "w");
-      if (pFileConfig) {
-        fwrite(data, size, 1, pFileConfig);
-        bUploadConfig = TRUE;
-      }
-    } else if (pFileConfig) {
-      fwrite(data, size, 1, pFileConfig);
+    if (o_strstr(request->http_url, "importConfig")) {
+      loadUploadFile(data, off, size, UPLOAD_FILE_CONFIG);
+    } else if (o_strstr(request->http_url, "importLogo")) {
+      loadUploadFile(data, off, size, UPLOAD_FILE_LOGO);
+    } else if (o_strstr(request->http_url, "importPatch")) {
+      loadUploadFile(data, off, size, UPLOAD_FILE_PATCH);
+    } else if (o_strstr(request->http_url, "addRing")) {
+      loadUploadFile(data, off, size, UPLOAD_FILE_RING);
+    } else if (o_strstr(request->http_url, "loadFirmware")) {
+      loadUploadFile(data, off, size, UPLOAD_FILE_FIRMWARE);
+    } else {
+      LOG_ERROR("Invalid file");
     }
-
-  } else if (o_strstr(filename, ".bin")) {
-
-    if (off == 0) {
-
-      system("rm /tmp/config.db");
-
-      pFileConfig = fopen("/tmp/config.db", "w");
-      if (pFileConfig) {
-        fwrite(data, size, 1, pFileConfig);
-        bUploadFirmware = TRUE;
-      }
-    } else if (pFileConfig) {
-      fwrite(data, size, 1, pFileConfig);
-    }
-
   }
 
   return U_OK;

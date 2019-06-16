@@ -77,4 +77,6 @@ BOOL getVersionStatus(json_t **j_result);
 
 BOOL getBurningStatus(json_t **j_result);
 
+BOOL getFwCloudVersion(json_t **j_result);
+
 #endif
