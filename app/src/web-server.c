@@ -600,6 +600,39 @@ int callback_capture_log(const struct _u_request *request, struct _u_response *r
         stopCaptureLog();
         ulfius_set_string_body_response(response, HTTP_SC_OK, NULL);
       } else if (!o_strcmp(pchValue, "export")) {
+
+        void *pchBuffer = NULL;
+        long length;
+        FILE *pFile = NULL;
+
+        system("cd /data/logs/ && tar -cvf /data/logs/logs.tar *");
+
+        if (access("/data/logs/logs.tar", SUCCESS) != ERROR) {
+          pFile = fopen ("/data/logs/logs.tar", "rb");
+          if (pFile) {
+            fseek(pFile, 0, SEEK_END);
+            length = ftell(pFile);
+            fseek(pFile, 0, SEEK_SET);
+            pchBuffer = o_malloc(length*sizeof(void));
+            if (pchBuffer) {
+              fread(pchBuffer, 1, length, pFile);
+            }
+            fclose(pFile);
+          }
+
+          if (pchBuffer) {
+
+            u_map_put(response->map_header, "Content-Type", "application/octet-stream");
+            u_map_put(response->map_header, "Content-Disposition", "Attachment;filename=logs.tar");
+            
+            response->binary_body        = pchBuffer;
+            response->binary_body_length = length;
+            
+            response->status = HTTP_SC_OK;
+          } else {
+            response->status = HTTP_SC_NOT_FOUND;
+          }
+        }
         exportLog();
         ulfius_set_string_body_response(response, HTTP_SC_OK, NULL);
       } else {
