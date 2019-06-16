@@ -54,6 +54,7 @@
 #define CAPTURE_LOG_REQUEST     "/captureLog.cgi"
 #define STATUS_FW_CLOUD_REQUEST "/statusFwCloud.cgi"
 #define UPDATE_FW_CLOUD_REQUEST "/updateFwCloud.cgi"
+#define BACKUP_REQUEST          "backup.cgi"
 
 #define NOT_FOUND_MESSAGE "Page not found, do what you want"
 
@@ -249,6 +250,11 @@ int callback_set_language(const struct _u_request *request, struct _u_response *
  * Callback function used to serve static files that are present in the static folder
  */ 
 int callback_static_file(const struct _u_request *request, struct _u_response *response, void *user_data);
+
+/*
+ * Callback function used to serve backup file
+ */ 
+int callback_backup(const struct _u_request *request, struct _u_response *response, void *user_data);
 
 /*
  * Default callback function called if no endpoint has a match

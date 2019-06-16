@@ -28,6 +28,8 @@
 #include <sys/un.h>
 #include <ctype.h>
 
+#define MSG_CONFIRM 0
+
 #define THIS_FILE "system-status.c"
 
 SYSTEM_GENERAL systemGeneral;
@@ -808,7 +810,7 @@ BOOL getBurningStatus(json_t **j_result) {
 	return TRUE; 
 }
 
-void getFwCloudVersion(json_t **j_result) {
+BOOL getFwCloudVersion(json_t **j_result) {
 
 
   json_t *j_data;

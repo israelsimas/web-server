@@ -107,7 +107,7 @@ int main(int argc, char **argv) {
   ulfius_add_endpoint_by_val(&instance, "GET", CAPTURE_LOG_REQUEST, NULL, 0, &callback_capture_log, NULL);
   ulfius_add_endpoint_by_val(&instance, "GET", STATUS_FW_CLOUD_REQUEST, NULL, 0, &callback_status_fw_cloud, NULL);
   ulfius_add_endpoint_by_val(&instance, "GET", UPDATE_FW_CLOUD_REQUEST, NULL, 0, &callback_update_fw_cloud, NULL);
-
+  ulfius_add_endpoint_by_val(&instance, "GET", BACKUP_REQUEST, NULL, 0, &callback_backup, NULL);
   ulfius_add_endpoint_by_val(&instance, "POST", RESTART_REQUEST, NULL, 0, &callback_restart, NULL);
   ulfius_add_endpoint_by_val(&instance, "POST", RESTART_SYSLOG_REQUEST, NULL, 0, &callback_restart_syslog, NULL);
   ulfius_add_endpoint_by_val(&instance, "POST", FACTORY_RESET_REQUEST, NULL, 0, &callback_factory_reset, NULL);
@@ -797,6 +797,45 @@ int callback_static_file(const struct _u_request *request, struct _u_response *r
   
   o_free(pchFilePath);
 
+  return U_CALLBACK_CONTINUE;
+}
+
+int callback_backup(const struct _u_request *request, struct _u_response *response, void *user_data) {
+
+  void *pchBuffer = NULL;
+  long length;
+  FILE *pFile = NULL;
+
+  system("rm /data/databaseCipher.sql");
+  system("openssl enc -aes-256-cbc -salt -in /data/database.sql -out /data/databaseCipher.sql -k SIRIUS_INTELBRAS");
+
+  if (access("/data/databaseCipher.sql", SUCCESS) != ERROR) {
+    pFile = fopen ("/data/databaseCipher.sql", "rb");
+    if (pFile) {
+      fseek(pFile, 0, SEEK_END);
+      length = ftell(pFile);
+      fseek(pFile, 0, SEEK_SET);
+      pchBuffer = o_malloc(length*sizeof(void));
+      if (pchBuffer) {
+        fread(pchBuffer, 1, length, pFile);
+      }
+      fclose(pFile);
+    }
+
+    if (pchBuffer) {
+
+      u_map_put(response->map_header, "Content-Type", "application/octet-stream");
+      u_map_put(response->map_header, "Content-Disposition", "Attachment;filename=config.db");
+      
+      response->binary_body        = pchBuffer;
+      response->binary_body_length = length;
+      
+      response->status = HTTP_SC_OK;
+    } else {
+      response->status = HTTP_SC_NOT_FOUND;
+    }
+  }
+  
   return U_CALLBACK_CONTINUE;
 }
 
