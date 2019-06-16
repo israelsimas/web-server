@@ -78,6 +78,10 @@ void notifyTables(const char *pchTables) {
   sendMiddlewareMessage(pchTables);
 }
 
+void generalNotify(const char *pchTables) {
+  sendMiddlewareMessage(pchTables);
+}
+
 void setNTPDateTime() {
   
   system("/etc/rc5.d/S96ntpdate stop");

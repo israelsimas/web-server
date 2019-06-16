@@ -43,6 +43,8 @@ void setLanguage();
 
 void notifyTables(const char *pchTables);
 
+void generalNotify(const char *pchTables);
+
 void setNTPDateTime();
 
 void setManualDateTime(const char *pchDate);

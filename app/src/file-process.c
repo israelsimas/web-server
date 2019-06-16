@@ -191,7 +191,10 @@ void loadUploadFile(const char *data, uint64_t off, size_t size, E_UPLOAD_FILE_T
     if (eType == UPLOAD_FILE_FIRMWARE) {
       bValidFirmware = isValidFirmware(data);
       if (bValidFirmware) {
+        generalNotify("fw_update_done");
         stopAppsSystem();
+      } else {
+        generalNotify("fw_update_done");
       }
     }
 
@@ -388,7 +391,7 @@ void closeFwupdate(char **ppchMessage) {
 
   system("/etc/rc5.d/S95control-call unclok");
   system("sync && reboot &");
-  // generalNotify("fw_update_done");
+  generalNotify("fw_update_done");
 }
 
 void stopAppsSystem() {
