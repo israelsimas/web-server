@@ -197,4 +197,53 @@ void updateConfig() {
 
     system("sync && reboot &");
   }
+
+  system("rm /tmp/config.db");
+}
+
+static BOOL addRing(char *pchRingName) {
+
+  char *pchQuery = msprintf("INSERT INTO TAB_SYSTEM_RING (Account, SYSRingtype, SYSRingName) VALUES (0, 2, '%s');", pchRingName);
+
+  if (!pchQuery) {
+    return FALSE;
+  }
+
+  if (h_query_insert(connDatabase, pchQuery) == H_OK) {
+    return TRUE;
+  } else {
+    return FALSE;
+  }
+} 
+
+static int getPkFromLastInsertedRing() {
+
+  struct _h_result result;
+
+  if (h_query_select(connDatabase, "SELECT MAX(PK) as PK FROM TAB_SYSTEM_RING", &result) == H_OK) {
+    if (result.nb_rows == 1) {
+
+      int pk = ((struct _h_type_int *)result.data[0][0].t_data)->value;
+      return pk;
+    }
+  }
+
+  return INVALID_RING_PK;
+}
+
+void updateRing(char *pchRingName) {
+
+	if (addRing(pchRingName)) {
+    int ringId = getPkFromLastInsertedRing();
+    char *pchCommand;
+
+    if (ringId != INVALID_RING_PK) {
+      pchCommand = msprintf("wav-pcmu %s /data/rings/%d.wav", UPLOAD_FILENAME_RING, ringId);
+      system(pchCommand);
+      o_free(pchCommand);     
+    }
+
+  }
+
+  system("rm /tmp/ring.wav");
 }

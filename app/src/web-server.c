@@ -930,7 +930,14 @@ int callback_upload_file (const struct _u_request * request, struct _u_response 
     } else if (!o_strcmp(pchValue, "importPatch")) {
       closeUploadFile(UPLOAD_FILE_PATCH);
     } else if (!o_strcmp(pchValue, "addRing")) {
+      const char **ppKeysRing;
+
       closeUploadFile(UPLOAD_FILE_RING);
+      ppKeysRing = u_map_enum_keys(request->map_post_body);
+      if (ppKeysRing[1] && (request->map_post_body->nb_values == 2) && !o_strcmp(ppKeysRing[1], "SYSRingName")) {
+        pchValue = u_map_get(request->map_post_body, ppKeysRing[1]);
+        updateRing(pchValue);
+      }
     } else if (!o_strcmp(pchValue, "loadFirmware")) {
       closeUploadFile(UPLOAD_FILE_FIRMWARE);
     } else {
