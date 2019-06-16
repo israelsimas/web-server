@@ -41,6 +41,7 @@ FILE *pFileFirmware = NULL;
 struct _h_connection *connDatabase;
 BOOL bValidFirmware = TRUE;
 int statusFirmware = FIRMWARE_VALID;
+char *pchVersionFirmware = NULL;
 
 void initFileProcess(struct _h_connection *connDB) {
   connDatabase = connDB;
@@ -73,6 +74,7 @@ static BOOL isValidFirmware(const char *data) {
     return FALSE;
   }
 
+  pchVersionFirmware = msprintf("%d.%d.%d", pFirmHeader->major, pFirmHeader->minor, pFirmHeader->patch);
   statusFirmware = FIRMWARE_VALID;
   return TRUE;
 }
@@ -367,15 +369,26 @@ int updateFirmware() {
   int status = SUCCESS;
   char *pchCmd = NULL;
 
-  pchCmd = msprintf("burn-firmware  -f %s -p %s &", UPLOAD_FILENAME_FIRMWARE, getFreePartition());
-  system(pchCmd);
-  o_free(pchCmd);
+  // pchCmd = msprintf("burn-firmware  -f %s -p %s", UPLOAD_FILENAME_FIRMWARE, getFreePartition());
+  // system(pchCmd);
+  // o_free(pchCmd);
+
+//  sleep(60);
 
   return status;
 }
 
-void closeFwupdate() {
+void closeFwupdate(char **ppchMessage) {
+
+  SYSTEM_GENERAL *pSystem = getSystemGeneral();
+
   system("rm /run/firmware.bin");
+
+  *ppchMessage = msprintf("Alterando da v%d.%d.%d para v%s <br/>Stored on partition %d <br/>Restarting the device!", pSystem->wMajor, pSystem->wMinor, pSystem->wPatch, pchVersionFirmware);
+
+  system("/etc/rc5.d/S95control-call unclok");
+  system("sync && reboot &");
+  // generalNotify("fw_update_done");
 }
 
 void stopAppsSystem() {
@@ -393,26 +406,34 @@ void restartAppsSystem() {
   system("/etc/rc5.d/S95control-call unlock");
 }
 
+int percentageNum = 0;
 
 BOOL getBurningStatus(json_t *j_result) {
   
-  FILE *pf;
-  char pchPercent[PERCENTAGE_STR_LEN];
+  FILE *pFile = NULL;
+  char *pchPercent;
+  int length;
 
   if (j_result == NULL) {
     return FALSE;
   }
 
-  sprintf(pchPercent, "%d", 0);
-  pf = popen("cat /tmp/burningPercent", "r");
-	if (pf) {
-		fgets(pchPercent, PERCENTAGE_STR_LEN, pf);
-		pclose(pf);
-	} else {
-    sprintf(pchPercent, "%d", 0);
+  pFile = fopen (FIRMWARE_UPLOAD_STATUS_FILE, "r");
+  if (pFile) {
+    fseek(pFile, 0, SEEK_END);
+    length = ftell(pFile);
+    fseek(pFile, 0, SEEK_SET);
+    pchPercent = o_malloc(length*sizeof(void));
+    if (pchPercent) {
+      fread(pchPercent, 1, length, pFile);
+    }
+    fclose(pFile);
+  } else {
+      pchPercent = o_malloc(PERCENTAGE_STR_LEN*sizeof(void));
+      sprintf(pchPercent, "%d", 0);
   }
 
-  json_object_set_new(j_result, "percent", json_integer(atoi(pchPercent)));
+  json_object_set_new(j_result, "percent", json_string(pchPercent));
 
 	return TRUE; 
 }

@@ -727,7 +727,7 @@ int callback_save_fw(const struct _u_request *request, struct _u_response *respo
 
 int callback_burn_fw(const struct _u_request *request, struct _u_response *response, void *user_data) {
 
-  char *pchResponseBody;
+  char *pchResponseBody = NULL;
   int status;
 
   status = getFirmwareStatus();
@@ -735,6 +735,7 @@ int callback_burn_fw(const struct _u_request *request, struct _u_response *respo
 
     case FIRMWARE_VALID:
       updateFirmware();
+      pchResponseBody = msprintf("Gravando Firmware");
       break;
     
     case FIRMWARE_INVALID_FILE:
@@ -758,13 +759,15 @@ int callback_burn_fw(const struct _u_request *request, struct _u_response *respo
 
   o_free(pchResponseBody);
 
-  return U_CALLBACK_COMPLETE;  
+  return U_CALLBACK_COMPLETE;
 }
 
 int callback_end_fw(const struct _u_request *request, struct _u_response *response, void *user_data) {
 
-  closeFwupdate();
-  ulfius_set_string_body_response(response, HTTP_SC_OK, NULL);
+  char *pchResponseBody = NULL;
+
+  closeFwupdate(&pchResponseBody);
+  ulfius_set_string_body_response(response, HTTP_SC_OK, pchResponseBody);
 
   return U_CALLBACK_COMPLETE;  
 }
@@ -773,8 +776,8 @@ int callback_burn_status(const struct _u_request *request, struct _u_response *r
 
   json_t *pResult;
   char *pchResponseBody;
-
-  pResult = json_object();  
+ 
+  pResult = json_object();   
   if (pResult) {  
     getBurningStatus(pResult);
     pchResponseBody = json_dumps(pResult, JSON_INDENT(2));
@@ -787,7 +790,7 @@ int callback_burn_status(const struct _u_request *request, struct _u_response *r
     return U_CALLBACK_COMPLETE;
   } else {
     return U_CALLBACK_CONTINUE;
-  } 
+  }  
 }
 
 const char *getFilenameExt(const char *pchPath) {
@@ -989,7 +992,7 @@ int callback_upload_file (const struct _u_request * request, struct _u_response 
   ulfius_set_string_body_response(response, 200, pchResponseBody);
   o_free(pchResponseBody);
 
-  return U_CALLBACK_CONTINUE;
+  return U_CALLBACK_COMPLETE;
 }
 
 int file_upload_callback (const struct _u_request * request, 

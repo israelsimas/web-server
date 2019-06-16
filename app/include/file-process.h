@@ -24,6 +24,8 @@
 #define UPLOAD_FILENAME_CONTACTS  "/tmp/contacts.xml"
 #define UPLOAD_FILENAME_FIRMWARE  "/run/firmware.bin"
 
+#define FIRMWARE_UPLOAD_STATUS_FILE "/tmp/burningPercent"
+
 #define IS_FIRST_PACKET(offset) ((offset==0)?TRUE:FALSE)
 
 #define INVALID_RING_PK 0
@@ -92,7 +94,7 @@ void stopAppsSystem();
 
 void restartAppsSystem();
 
-void closeFwupdate();
+void closeFwupdate(char **ppchMessage);
 
 BOOL getBurningStatus(json_t *j_result);
 

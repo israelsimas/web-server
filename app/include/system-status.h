@@ -31,7 +31,7 @@
 #define ENDPOINT_STATUS 		"CMD_STATUS"
 #define PORT_SERVER_ENDPOINT_STATUS   4860
 
-#define PERCENTAGE_STR_LEN  4
+#define PERCENTAGE_STR_LEN  5
 
 /**************************************************************************
  * TYPEDEFS
