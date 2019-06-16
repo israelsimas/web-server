@@ -33,8 +33,6 @@
 
 #define PERCENTAGE_STR_LEN  4
 
-#define PARTITION_1
-
 /**************************************************************************
  * TYPEDEFS
  **************************************************************************/
@@ -77,8 +75,6 @@ BOOL getGeneralStatus(json_t **j_result);
 BOOL getGigaSupport(json_t **j_result);
 
 BOOL getVersionStatus(json_t **j_result);
-
-BOOL getBurningStatus(json_t **j_result);
 
 BOOL getFwCloudVersion(json_t **j_result);
 

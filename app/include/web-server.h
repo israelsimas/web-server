@@ -44,7 +44,6 @@
 #define VERSIO_REQUEST          "/version.cgi"
 #define RESTART_REQUEST         "/restart.cgi"
 #define RESTART_SYSLOG_REQUEST  "/restart_syslog.cgi"
-#define BURN_STATUS_REQUEST     "/burn_status.cgi"
 #define FACTORY_RESET_REQUEST   "/factoryReset.cgi"
 #define LOGO_RESET_REQUEST      "/logoReset.cgi"
 #define SET_LANGUAGE_REQUEST    "/setLanguage.cgi"
@@ -60,7 +59,8 @@
 #define UPLOAD_CONFIG_REQUEST   "/upload_file.cgi"
 #define SAVE_FW_REQUEST         "/saveFirmware.cgi"
 #define BURN_FW_REQUEST         "/burn_firmware.cgi"
-#define END_FW_REQUEST         "/end_burnfirmware.cgi"
+#define END_FW_REQUEST          "/end_burnfirmware.cgi"
+#define BURN_STATUS_REQUEST     "/burn_status.cgi"
 
 #define CONFIG_FILE             "/data/config.db"
 

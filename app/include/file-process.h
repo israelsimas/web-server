@@ -94,4 +94,6 @@ void restartAppsSystem();
 
 void closeFwupdate();
 
+BOOL getBurningStatus(json_t *j_result);
+
 #endif

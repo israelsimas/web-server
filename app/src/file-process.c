@@ -379,16 +379,40 @@ void closeFwupdate() {
 }
 
 void stopAppsSystem() {
-  // system("/etc/rc5.d/S95control-call lock && killall control-call");
-  // system("/etc/rc5.d/S91dspg_apps stop");
-  // system("/etc/rc5.d/S93handset lock && killall handset");
-  // system("/etc/rc5.d/S87middleware-zeromq stop");
+  system("/etc/rc5.d/S95control-call lock && killall control-call");
+  system("/etc/rc5.d/S91dspg_apps stop");
+  system("/etc/rc5.d/S93handset lock && killall handset");
+  system("/etc/rc5.d/S87middleware-zeromq stop");
   system("echo \"-1\" > /tmp/burningPercent");
 }
 
 void restartAppsSystem() {
-  // system("/etc/rc5.d/S87middleware-zeromq restart");
-  // system("/etc/rc5.d/S91dspg_apps start");
-  // system("/etc/rc5.d/S93handset unlock");
-  // system("/etc/rc5.d/S95control-call unlock");
+  system("/etc/rc5.d/S87middleware-zeromq restart");
+  system("/etc/rc5.d/S91dspg_apps start");
+  system("/etc/rc5.d/S93handset unlock");
+  system("/etc/rc5.d/S95control-call unlock");
+}
+
+
+BOOL getBurningStatus(json_t *j_result) {
+  
+  FILE *pf;
+  char pchPercent[PERCENTAGE_STR_LEN];
+
+  if (j_result == NULL) {
+    return FALSE;
+  }
+
+  sprintf(pchPercent, "%d", 0);
+  pf = popen("cat /tmp/burningPercent", "r");
+	if (pf) {
+		fgets(pchPercent, PERCENTAGE_STR_LEN, pf);
+		pclose(pf);
+	} else {
+    sprintf(pchPercent, "%d", 0);
+  }
+
+  json_object_set_new(j_result, "percent", json_integer(atoi(pchPercent)));
+
+	return TRUE; 
 }
