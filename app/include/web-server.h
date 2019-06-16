@@ -266,6 +266,17 @@ int callback_default(const struct _u_request *request, struct _u_response *respo
 // Callback function used to upload file
 int callback_upload_file (const struct _u_request * request, struct _u_response * response, void * user_data);
 
+// File upload callback function
+int file_upload_callback (const struct _u_request * request, 
+                          const char * key, 
+                          const char * filename, 
+                          const char * content_type, 
+                          const char * transfer_encoding, 
+                          const char * data, 
+                          uint64_t off, 
+                          size_t size, 
+                          void * user_data);
+
 /*
  * Return the filename extension
  */

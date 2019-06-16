@@ -76,6 +76,10 @@ int main(int argc, char **argv) {
   
   u_map_put(instance.default_headers, "Access-Control-Allow-Origin", "*");
   
+  if (ulfius_set_upload_file_callback_function(&instance, &file_upload_callback, "my cls") != U_OK) {
+    LOG_ERROR("Error ulfius_set_upload_file_callback_function");
+  }
+
   // Maximum body size sent by the client is 1 Kb
   instance.max_post_body_size = POST_SIZE_MAX;
 
@@ -916,6 +920,19 @@ int callback_upload_file (const struct _u_request * request, struct _u_response 
   o_free(string_body);
 
   return U_CALLBACK_CONTINUE;
+}
+
+int file_upload_callback (const struct _u_request * request, 
+                          const char * key, 
+                          const char * filename, 
+                          const char * content_type, 
+                          const char * transfer_encoding, 
+                          const char * data, 
+                          uint64_t off, 
+                          size_t size, 
+                          void * cls) {
+  LOG("Got from file '%s' of the key '%s', offset %llu, size %zu, cls is '%s'", filename, key, off, size, cls);
+  return U_OK;
 }
 
 int callback_default(const struct _u_request *request, struct _u_response *response, void *user_data) {
