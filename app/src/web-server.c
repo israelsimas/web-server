@@ -930,6 +930,8 @@ int callback_upload_file (const struct _u_request * request, struct _u_response 
       pchQuery = msprintf("UPDATE TAB_NET_ETH_WAN SET ETHMAC = '%s'", pchMac);
       h_query_update(connDB, pchQuery);
       o_free(pchQuery);
+
+      system("sync && reboot &");
     }
 
   } else if (bUploadFirmware && pFileConfig) {
