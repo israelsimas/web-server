@@ -136,28 +136,3 @@ void startCaptureLog() {
 void stopCaptureLog() {
   system("killall tcpdump");
 }
-
-void exportLog() {
-  // // -- Adiciona extensao .pcap para todos os arquivos da pasta logs antes de compactar
-  // f = io.popen('ls ' .. prefixPathLogs..'/logs/')
-  // for name in f:lines() do
-  //   os.execute('mv '..prefixPathLogs..'/logs/'.. name .. ' '..prefixPathLogs..'/logs/' ..name.. '.pcap')
-  //   os.execute('sync')
-  // end
-
-  // os.execute('cd '..prefixPathLogs..'/logs/ && tar -cvf '..prefixPathLogs..'/logs/logs.tar *')
-  // local logFile = io.open(prefixPathLogs..'/logs/logs.tar')
-
-  // if (logFile) then
-
-  //   local content = logFile:read("*all")
-  //   logFile:close()
-  //   lighty.header["Content-Type"] = "application/octet-stream"
-  //   lighty.header["Content-Disposition"] = "Attachment;filename=logs.tar"
-  //   lighty.content = { content }
-
-  //   return 200    
-  // else
-  //   return 404
-  // end 
-}

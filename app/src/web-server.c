@@ -621,7 +621,6 @@ int callback_capture_log(const struct _u_request *request, struct _u_response *r
             response->status = HTTP_SC_NOT_FOUND;
           }
         }
-        exportLog();
         ulfius_set_string_body_response(response, HTTP_SC_OK, NULL);
       } else {
         ulfius_set_string_body_response(response, HTTP_SC_INTERNAL_SERVER_ERROR, NULL);

@@ -57,6 +57,4 @@ void startCaptureLog();
 
 void stopCaptureLog();
 
-void exportLog();
-
 #endif
