@@ -66,7 +66,6 @@ SYSTEM_GENERAL* getSystemGeneral() {
   return &systemGeneral;
 }
 
-
 static void getRegisterStatus(WORD wAccount, WORD *wRegisterCode, BOOL *bRegisterICIP) {
 
   int sockfd, recvLen, slen; 

@@ -35,11 +35,17 @@ FILE *pFileConfig = NULL;
 FILE *pFileLogo = NULL;
 FILE *pFilePatch = NULL;
 FILE *pFileRing = NULL;
+FILE *pFileContacts = NULL;
 FILE *pFileFirmware = NULL;
 struct _h_connection *connDatabase;
+BOOL bValidFirmware = TRUE;
 
 void initFileProcess(struct _h_connection *connDB) {
   connDatabase = connDB;
+}
+
+static BOOL isValidFirmware() {
+  return TRUE;
 }
 
 static char *getFileName(E_UPLOAD_FILE_TYPE eType) {
@@ -57,6 +63,9 @@ static char *getFileName(E_UPLOAD_FILE_TYPE eType) {
 
     case UPLOAD_FILE_RING:
       return UPLOAD_FILENAME_RING;
+
+    case UPLOAD_FILE_CONTACTS:
+      return UPLOAD_FILENAME_CONTACTS;      
 
     case UPLOAD_FILE_FIRMWARE:
       return UPLOAD_FILENAME_FIRMWARE;
@@ -87,6 +96,10 @@ static void updateFileUpload(E_UPLOAD_FILE_TYPE eType, FILE *pFile) {
       pFileRing = pFile;
       break;
 
+     case UPLOAD_FILE_CONTACTS:
+      pFileContacts = pFile;
+      break;     
+
     case UPLOAD_FILE_FIRMWARE:
       pFileFirmware = pFile;
       break;
@@ -113,6 +126,9 @@ static FILE *getFileUpload(E_UPLOAD_FILE_TYPE eType) {
 
     case UPLOAD_FILE_RING:
       return pFileRing;
+
+    case UPLOAD_FILE_CONTACTS:
+      return pFileContacts;      
 
     case UPLOAD_FILE_FIRMWARE:
       return pFileFirmware;
@@ -141,6 +157,12 @@ void loadUploadFile(const char *data, uint64_t off, size_t size, E_UPLOAD_FILE_T
     }
     updateFileUpload(eType, pFile);
 
+    if (eType == UPLOAD_FILE_FIRMWARE) {
+      bValidFirmware = isValidFirmware();
+    }
+
+  } else if ((eType == UPLOAD_FILE_FIRMWARE) && !bValidFirmware) {
+    // do nothing - Invalid Firmware
   } else {
     pFile = getFileUpload(eType);
     if (pFile) {
@@ -172,6 +194,11 @@ void closeUploadFile(E_UPLOAD_FILE_TYPE eType) {
       fclose(pFileRing);
       pFileRing = NULL;
       break;
+
+     case UPLOAD_FILE_CONTACTS:
+      fclose(pFileContacts);
+      pFileContacts = NULL;
+      break;     
 
     case UPLOAD_FILE_FIRMWARE:
       fclose(pFileFirmware);
@@ -273,4 +300,18 @@ void updatePatch() {
 
   system("rm -rf /data/patch");
   system("rm /data/patch_new.patch");
+}
+
+void updateContacts() {
+
+  system("rm /tmp/contacts.xml");
+}
+
+void updateFirmware() {
+
+  if (bValidFirmware) {
+
+  }
+
+  system("rm /run/firmware.bin");
 }

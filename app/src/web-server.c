@@ -928,6 +928,9 @@ int callback_upload_file (const struct _u_request * request, struct _u_response 
     } else if (!o_strcmp(pchValue, "importLogo")) {
       closeUploadFile(UPLOAD_FILE_LOGO);
       updateLogo();
+    } else if (!o_strcmp(pchValue, "importContacts")) {
+      closeUploadFile(UPLOAD_FILE_LOGO);
+      updateContacts();
     } else if (!o_strcmp(pchValue, "importPatch")) {
       closeUploadFile(UPLOAD_FILE_PATCH);
       updatePatch();
@@ -942,6 +945,7 @@ int callback_upload_file (const struct _u_request * request, struct _u_response 
       }
     } else if (!o_strcmp(pchValue, "loadFirmware")) {
       closeUploadFile(UPLOAD_FILE_FIRMWARE);
+      updateFirmware();
     } else {
       LOG_ERROR("Invalid file");
     }
@@ -975,6 +979,8 @@ int file_upload_callback (const struct _u_request * request,
       loadUploadFile(data, off, size, UPLOAD_FILE_CONFIG);
     } else if (o_strstr(request->http_url, "importLogo")) {
       loadUploadFile(data, off, size, UPLOAD_FILE_LOGO);
+     } else if (o_strstr(request->http_url, "importContacts")) {
+      loadUploadFile(data, off, size, UPLOAD_FILE_CONTACTS);     
     } else if (o_strstr(request->http_url, "importPatch")) {
       loadUploadFile(data, off, size, UPLOAD_FILE_PATCH);
     } else if (o_strstr(request->http_url, "addRing")) {

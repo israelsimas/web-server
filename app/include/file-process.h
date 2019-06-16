@@ -21,7 +21,8 @@
 #define UPLOAD_FILENAME_LOGO      "/tmp/logo.bmp"
 #define UPLOAD_FILENAME_PATCH     "/data/patch_new.patch"
 #define UPLOAD_FILENAME_RING      "/tmp/ring.wav"
-#define UPLOAD_FILENAME_FIRMWARE  "/tmp/config.db"
+#define UPLOAD_FILENAME_CONTACTS  "/tmp/contacts.xml"
+#define UPLOAD_FILENAME_FIRMWARE  "/run/firmware.bin"
 
 #define IS_FIRST_PACKET(offset) ((offset==0)?TRUE:FALSE)
 
@@ -39,6 +40,7 @@ typedef enum {
   UPLOAD_FILE_LOGO,
   UPLOAD_FILE_PATCH,
   UPLOAD_FILE_RING,
+  UPLOAD_FILE_CONTACTS,
   UPLOAD_FILE_FIRMWARE
 } E_UPLOAD_FILE_TYPE;
 
@@ -60,5 +62,9 @@ void updateRing(char *pchRingName);
 void updateLogo();
 
 void updatePatch();
+
+void updateContacts();
+
+void updateFirmware();
 
 #endif
