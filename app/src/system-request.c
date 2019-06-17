@@ -147,6 +147,30 @@ static void createAutopFile(struct _u_map *map_url) {
         } else {
            pchContent = msprintf("\nparams.weekly = false");
         }
+      } else if (!strcmp(pchParam, "weeks_mask")) {
+        pchContent = msprintf("\nparams.weekdays = %s", pchValue);
+      } else if (!strcmp(pchParam, "update_interval")) {
+        pchContent = msprintf("\nparams.period = %s", pchValue);
+      } else if (!strcmp(pchParam, "update_turn_on")) {
+        if (!strcmp(pchValue, "1"))  {
+          pchContent = msprintf("\nparams.onBoot = true");
+        } else {
+           pchContent = msprintf("\nparams.onBoot = false");
+        }
+      } else if (!strcmp(pchParam, "update_enable_config")) {
+        if (!strcmp(pchValue, "1"))  {
+          pchContent = msprintf("\nparams.enable = true");
+        } else {
+           pchContent = msprintf("\nparams.enable = false");
+        }
+      } else if (!strcmp(pchParam, "update_protocol")) {
+        pchContent = msprintf("\nparams.protocol = %s", pchValue);
+      } else if (!strcmp(pchParam, "update_authType")) {
+        pchContent = msprintf("\nparams.authTye = %s", pchValue);
+      } else if (!strcmp(pchParam, "update_username")) {
+        pchContent = msprintf("\nparams.username = %s", pchValue);   
+      } else if (!strcmp(pchParam, "update_password")) {
+        pchContent = msprintf("\nparams.password = %s", pchValue);     
       } else {
         bValidParam = FALSE;
       }
@@ -157,6 +181,11 @@ static void createAutopFile(struct _u_map *map_url) {
         o_free(pchContent);
       }
     }
+
+    pchContent = msprintf("\nparams.macaddress = %s\n", getMac());   
+    size = o_strlen(pchContent);
+    fwrite(pchContent, size, 1, pFile);
+    o_free(pchContent);
 
     fclose(pFile);
   }
