@@ -107,8 +107,63 @@ void setChangeBootPartition(int bootPartition) {
   o_free(pchComand); 
 }
 
-void setSelfProvision(const char *pchParameters) {
+static void createAutopFile(struct _u_map *map_url) {
 
+  int i, size;
+  char *pchContent, *pchParam, *pchValue;
+  const char **ppKeys;
+  FILE *pFile = fopen("/data/autop_params.lua", "rb");
+  BOOL bValidParam = FALSE;
+
+  system("rm /data/autop_params.lua");
+
+  ppKeys = u_map_enum_keys(map_url);
+
+  pFile = fopen("/data/autop_params.lua", "w+");
+  if (pFile != NULL) {
+
+    fwrite("params = {}\n", o_strlen("params = {}\n"), 1, pFile);
+
+    pchContent = msprintf("\nparams.thisFile = \"src/magnet/request_to_os.lua\" \nparams.webconfDir = \"/var/www/\"");
+    size = o_strlen(pchContent);
+    fwrite(pchContent, size, 1, pFile);
+    o_free(pchContent);
+
+    for (i = 0; i < map_url->nb_values; i++) {
+
+      bValidParam = TRUE;
+      pchParam = ppKeys[i];
+      pchValue = u_map_get(map_url, ppKeys[i]);
+
+      if (!strcmp(pchParam, "update_repeat")) {
+        if (!strcmp(pchValue, "1"))  {
+          pchContent = msprintf("\nparams.periodic = true");
+        } else {
+           pchContent = msprintf("\nparams.periodic = false");
+        }
+      } else if (!strcmp(pchParam, "update_weekly")) {
+        if (!strcmp(pchValue, "1"))  {
+          pchContent = msprintf("\nparams.weekly = true");
+        } else {
+           pchContent = msprintf("\nparams.weekly = false");
+        }
+      } else {
+        bValidParam = FALSE;
+      }
+
+      if (bValidParam) {
+        size = o_strlen(pchContent);
+        fwrite(pchContent, size, 1, pFile);
+        o_free(pchContent);
+      }
+    }
+
+    fclose(pFile);
+  }
+}
+
+void setSelfProvision(struct _u_map *map_url) {
+  createAutopFile(map_url);
 }
 
 void startCaptureLog() {

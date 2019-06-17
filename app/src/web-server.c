@@ -533,19 +533,9 @@ int callback_date_time(const struct _u_request *request, struct _u_response *res
 
 int callback_self_provisioning(const struct _u_request *request, struct _u_response *response, void *user_data) {
 
-  const char **ppKeys;
-  const char *pchValue;
-
-  ppKeys = u_map_enum_keys(request->map_url);
-
-  if (ppKeys[0]) {
-    pchValue = u_map_get(request->map_url, ppKeys[0]);
-    if (pchValue) {
-      // setSelfProvision(pchValue);
-      ulfius_set_string_body_response(response, HTTP_SC_OK, NULL);
-    } else {
-      ulfius_set_string_body_response(response, HTTP_SC_INTERNAL_SERVER_ERROR, NULL);
-    }
+  if (request->map_url) {
+    setSelfProvision(request->map_url);
+    ulfius_set_string_body_response(response, HTTP_SC_OK, NULL);
     return U_CALLBACK_COMPLETE;  
   } else {
     return U_CALLBACK_CONTINUE;

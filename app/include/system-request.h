@@ -14,6 +14,8 @@
 #ifndef SYTEM_REQUEST_H_
 #define SYTEM_REQUEST_H_
 
+#include <ulfius.h>
+
 /**************************************************************************
  * DEFINITIONS
  **************************************************************************/
@@ -51,7 +53,7 @@ void setManualDateTime(const char *pchDate);
 
 void setChangeBootPartition(int bootPartition);
 
-void setSelfProvision(const char *pchParameters);
+void setSelfProvision(struct _u_map *map_url);
 
 void startCaptureLog();
 
