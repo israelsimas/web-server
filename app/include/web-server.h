@@ -28,6 +28,11 @@
 #define PORT_DEFAULT    8080
 #define WAIT_MAIN_LOOP  10
 
+#define SECURE_CONNECTION 1
+
+#define CERTIFICATE_KEY "/etc/certificates/cert.key"
+#define CERTIFICATE_PEM "/etc/certificates/cert.pem"
+
 #define STATIC_FOLDER   "/var/www"
 #define INDEX_HTML      "/index.html"
 
