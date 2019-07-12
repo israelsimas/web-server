@@ -129,8 +129,17 @@ int main(int argc, char **argv) {
   // default_endpoint declaration
   ulfius_set_default_endpoint(&instance, &callback_default, NULL);
 
-  // Open an http connection
-  status = ulfius_start_framework(&instance);
+  if (SECURE_CONNECTION) {
+    // Open an https connection
+    char *key_pem = readFile(CERTIFICATE_KEY), *cert_pem = readFile(CERTIFICATE_PEM);
+    status = ulfius_start_secure_framework(&instance, key_pem, cert_pem);
+    o_free(key_pem);
+    o_free(cert_pem);
+  } else {
+    // Open an http connection
+    status = ulfius_start_framework(&instance);
+  }
+
   if (status == SUCCESS) {
     
     // Wait for the user to press <enter> on the console to quit the application
