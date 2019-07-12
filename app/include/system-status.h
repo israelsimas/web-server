@@ -33,6 +33,8 @@
 
 #define PERCENTAGE_STR_LEN  5
 
+#define LOGIN_TIMEOUT     300
+
 /**************************************************************************
  * TYPEDEFS
  **************************************************************************/
@@ -46,6 +48,9 @@ typedef struct SYSTEM_GENERAL {
   WORD wPatch;   
   int accountNumber;
   int dev_id;
+  time_t loginTime;
+  char *pchAdminUser;
+  char *pchAdminPwd;  
 } SYSTEM_GENERAL;
 
 /**************************************************************************

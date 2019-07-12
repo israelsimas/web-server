@@ -476,6 +476,10 @@ int callback_version(const struct _u_request *request, struct _u_response *respo
   json_t *pResult;
   char *pchResponseBody;
 
+  if (!isAuthenticated(request, response)) {
+    return U_CALLBACK_UNAUTHORIZED;
+  }
+
   pResult = json_array();    
   if (pResult) {  
     getVersionStatus(&pResult);

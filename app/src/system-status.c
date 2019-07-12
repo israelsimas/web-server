@@ -27,6 +27,8 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <ctype.h>
+#include <ulfius.h>
+#include <time.h> 
 
 #define MSG_CONFIRM 0
 
@@ -53,6 +55,10 @@ static void loadSystemGeneral(SYSTEM_GENERAL *pSystemGeneral) {
   pSystemGeneral->wMinor = atoi(pchToken);
   pchToken = strtok(NULL, ".");
   pSystemGeneral->wPatch = atoi(pchToken);
+
+  pSystemGeneral->pchAdminUser = o_strdup("admin");
+  pSystemGeneral->pchAdminPwd  = o_strdup("admin");
+  pSystemGeneral->loginTime    = time(NULL); 
 }
 
 void initSystemGeneral(struct _h_connection *pConn) {
@@ -67,8 +73,23 @@ SYSTEM_GENERAL* getSystemGeneral() {
   return &systemGeneral;
 }
 
+BOOL isAuthenticated(const struct _u_request *request, struct _u_response *response) {
+
+  if (request->auth_basic_user != NULL && request->auth_basic_password != NULL && 0 == o_strcmp(request->auth_basic_user, systemGeneral.pchAdminUser) && 0 == o_strcmp(request->auth_basic_password, systemGeneral.pchAdminPwd) && (time(NULL) < (systemGeneral.loginTime + LOGIN_TIMEOUT))) {
+    systemGeneral.loginTime = time(NULL);
+    return TRUE;
+  } else {
+    systemGeneral.loginTime = time(NULL);
+    ulfius_set_string_body_response(response, 401, "Error authentication");
+    u_map_put(response->map_header, "WWW-Authenticate", "Basic realm=\"IP phone Intelbras (INTELBRAS)\"");
+    u_map_put(response->map_header, "Connection", "close");
+    return FALSE;
+  }
+}
+
 static void getRegisterStatus(WORD wAccount, WORD *wRegisterCode, BOOL *bRegisterICIP) {
 
+#if 1
   int sockfd, recvLen, slen; 
   char pchBuffer[BUFFER_REG_LENGHT]; 
   struct sockaddr_in servaddr; 
@@ -100,6 +121,10 @@ static void getRegisterStatus(WORD wAccount, WORD *wRegisterCode, BOOL *bRegiste
   }
 
   close(sockfd); 
+#else
+  *wRegisterCode = 200;
+  *bRegisterICIP = 0;
+#endif
 
   return;
 }
