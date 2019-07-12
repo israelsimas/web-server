@@ -290,6 +290,8 @@ int callback_database(const struct _u_request *request, struct _u_response *resp
   json_t *pListResult[NUM_MAX_QUERY_COMANDS] = { NULL };
   int lenQuerys;
 
+  AUTHENTICATE_REQUEST(request, response);
+
   ppKeys = u_map_enum_keys(request->map_url);
 
   if (ppKeys[0]) {
@@ -348,6 +350,8 @@ int callback_status(const struct _u_request *request, struct _u_response *respon
   char *pchResult, *pchResultAcc, *pchResultNetwork, *pchResultSystem, *result;
   SYSTEM_GENERAL *pSystemStatus;
 
+  AUTHENTICATE_REQUEST(request, response);
+
   pSystemStatus = getSystemGeneral();
 
   pResultAcc = json_object();
@@ -383,6 +387,8 @@ int callback_endpoint_status(const struct _u_request *request, struct _u_respons
   json_t *pResult;
   char *pchResponseBody;
 
+  AUTHENTICATE_REQUEST(request, response);
+
   pResult = json_object();
   if (pResult) {  
     getEndpointFreeStatus(&pResult);
@@ -405,6 +411,8 @@ int callback_status_register(const struct _u_request *request, struct _u_respons
   char *pchResponseBody;
   const char **ppKeys;
   WORD wAccount;
+
+  AUTHENTICATE_REQUEST(request, response);
 
   ppKeys = u_map_enum_keys(request->map_url);
 
@@ -434,6 +442,8 @@ int callback_status_general(const struct _u_request *request, struct _u_response
   json_t *pResult;
   char *pchResponseBody;
 
+  AUTHENTICATE_REQUEST(request, response);
+
   pResult = json_array();    
   if (pResult) {  
     getGeneralStatus(&pResult);
@@ -455,6 +465,8 @@ int callback_support_giga(const struct _u_request *request, struct _u_response *
   json_t *pResult;
   char *pchResponseBody;
 
+  AUTHENTICATE_REQUEST(request, response);
+
   pResult = json_array();    
   if (pResult) {  
     getGigaSupport(&pResult);
@@ -475,8 +487,6 @@ int callback_version(const struct _u_request *request, struct _u_response *respo
 
   json_t *pResult;
   char *pchResponseBody;
-
-  AUTHENTICATE_REQUEST(request, response);
 
   pResult = json_array();    
   if (pResult) {  
@@ -500,6 +510,8 @@ int callback_notify(const struct _u_request *request, struct _u_response *respon
   const char *pchValue;
   WORD wAccount;
 
+  AUTHENTICATE_REQUEST(request, response);
+
   ppKeys = u_map_enum_keys(request->map_url);
 
   if (ppKeys[0]) {
@@ -515,6 +527,8 @@ int callback_notify(const struct _u_request *request, struct _u_response *respon
 
 int callback_autoprov_log(const struct _u_request *request, struct _u_response *response, void *user_data) {
 
+  AUTHENTICATE_REQUEST(request, response);
+
   // TODO - log to autoprov not available
   ulfius_set_string_body_response(response, HTTP_SC_NOT_FOUND, NULL);
 
@@ -525,6 +539,8 @@ int callback_date_time(const struct _u_request *request, struct _u_response *res
 
   const char **ppKeys;
   const char *pchValue;
+
+  AUTHENTICATE_REQUEST(request, response);
 
   ppKeys = u_map_enum_keys(request->map_url);
 
@@ -546,6 +562,8 @@ int callback_date_time(const struct _u_request *request, struct _u_response *res
 
 int callback_self_provisioning(const struct _u_request *request, struct _u_response *response, void *user_data) {
 
+  AUTHENTICATE_REQUEST(request, response);
+
   if (request->map_url) {
     setSelfProvision(request->map_url);
     ulfius_set_string_body_response(response, HTTP_SC_OK, NULL);
@@ -559,6 +577,8 @@ int callback_change_partition(const struct _u_request *request, struct _u_respon
 
   const char **ppKeys;
   const char *pchValue;
+
+  AUTHENTICATE_REQUEST(request, response);
 
   ppKeys = u_map_enum_keys(request->map_url);
 
@@ -580,6 +600,9 @@ int callback_capture_log(const struct _u_request *request, struct _u_response *r
 
   const char **ppKeys;
   const char *pchValue;
+
+  AUTHENTICATE_REQUEST(request, response);
+
   ppKeys = u_map_enum_keys(request->map_url);
 
   if (ppKeys[0] && (!o_strcmp(ppKeys[0], "action"))) {
@@ -644,6 +667,8 @@ int callback_status_fw_cloud(const struct _u_request *request, struct _u_respons
   json_t *pResult;
   char *pchResponseBody;
 
+  AUTHENTICATE_REQUEST(request, response);
+
   pResult = json_array();    
   if (pResult) {  
     getFwCloudVersion(&pResult);
@@ -665,6 +690,8 @@ int callback_update_fw_cloud(const struct _u_request *request, struct _u_respons
   json_t *pResult;
   char *pchResponseBody;
 
+  AUTHENTICATE_REQUEST(request, response);
+
   pResult = json_array();    
   if (pResult) {  
     // getVersionStatus(&pResult); TODO
@@ -683,6 +710,8 @@ int callback_update_fw_cloud(const struct _u_request *request, struct _u_respons
 
 int callback_restart(const struct _u_request *request, struct _u_response *response, void *user_data) {
 
+  AUTHENTICATE_REQUEST(request, response);
+
   restartSystem();
   ulfius_set_string_body_response(response, HTTP_SC_OK, NULL);
 
@@ -690,6 +719,8 @@ int callback_restart(const struct _u_request *request, struct _u_response *respo
 }
 
 int callback_restart_syslog(const struct _u_request *request, struct _u_response *response, void *user_data) {
+
+  AUTHENTICATE_REQUEST(request, response);
 
   restartSyslog();
   ulfius_set_string_body_response(response, HTTP_SC_OK, NULL);
@@ -699,6 +730,8 @@ int callback_restart_syslog(const struct _u_request *request, struct _u_response
 
 int callback_factory_reset(const struct _u_request *request, struct _u_response *response, void *user_data) {
 
+  AUTHENTICATE_REQUEST(request, response);
+
   factoryReset();
   ulfius_set_string_body_response(response, HTTP_SC_OK, NULL);
 
@@ -707,6 +740,8 @@ int callback_factory_reset(const struct _u_request *request, struct _u_response 
 
 int callback_logo_reset(const struct _u_request *request, struct _u_response *response, void *user_data) {
 
+  AUTHENTICATE_REQUEST(request, response);
+
   logoReset();
   ulfius_set_string_body_response(response, HTTP_SC_OK, NULL);
 
@@ -714,6 +749,8 @@ int callback_logo_reset(const struct _u_request *request, struct _u_response *re
 }
 
 int callback_set_language(const struct _u_request *request, struct _u_response *response, void *user_data) {
+
+  AUTHENTICATE_REQUEST(request, response);
 
   setLanguage();
   ulfius_set_string_body_response(response, HTTP_SC_OK, NULL);
@@ -800,6 +837,8 @@ int callback_export_autoprov(const struct _u_request *request, struct _u_respons
 
   char *pchBuffer;
   int lenBuffer;
+
+  AUTHENTICATE_REQUEST(request, response);
 
   u_map_put(response->map_header, "Content-Type", "application/xml");
   u_map_put(response->map_header, "Content-Disposition", "Attachment;filename=Autoprovisioning.xml");
@@ -905,6 +944,8 @@ int callback_backup(const struct _u_request *request, struct _u_response *respon
   long length;
   FILE *pFile = NULL;
 
+  AUTHENTICATE_REQUEST(request, response);
+
   system("rm /data/databaseCipher.sql");
   system("openssl enc -aes-256-cbc -salt -in /data/database.sql -out /data/databaseCipher.sql -k SIRIUS_INTELBRAS");
 
@@ -968,11 +1009,13 @@ char * print_map(const struct _u_map * map) {
   }
 }
 
-int callback_upload_file (const struct _u_request * request, struct _u_response * response, void * user_data) {
+int callback_upload_file(const struct _u_request * request, struct _u_response * response, void * user_data) {
 
   const char **ppKeys;
   const char *pchValue;
   char *pchResponseBody = NULL;
+
+  AUTHENTICATE_REQUEST(request, response);
 
   ppKeys = u_map_enum_keys(request->map_url);
 
