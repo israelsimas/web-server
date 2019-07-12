@@ -26,6 +26,7 @@
 
 #define POST_SIZE_MAX   1024
 #define PORT_DEFAULT    8080
+#define WAIT_MAIN_LOOP  10
 
 #define STATIC_FOLDER   "/var/www"
 #define INDEX_HTML      "/index.html"

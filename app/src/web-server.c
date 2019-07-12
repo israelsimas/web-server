@@ -134,7 +134,9 @@ int main(int argc, char **argv) {
   if (status == SUCCESS) {
     
     // Wait for the user to press <enter> on the console to quit the application
-    getchar();
+    while (TRUE) {
+      sleep(WAIT_MAIN_LOOP);
+    }
   } else {
     LOG_ERROR("Error starting framework");
   }
