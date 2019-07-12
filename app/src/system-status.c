@@ -40,6 +40,7 @@ struct _h_connection *pConnDB;
 static void loadSystemGeneral(SYSTEM_GENERAL *pSystemGeneral) {
 
   char *pchToken, pchVersion[10];
+  struct _h_result result;
 
 	getConfig(CFG_ACCOUNTS_NUMBER, &pSystemGeneral->accountNumber, TYPE_WORD);
 	getConfig(CFG_PRODUCT, &pSystemGeneral->pchProduct, TYPE_STRING);
@@ -56,17 +57,23 @@ static void loadSystemGeneral(SYSTEM_GENERAL *pSystemGeneral) {
   pchToken = strtok(NULL, ".");
   pSystemGeneral->wPatch = atoi(pchToken);
 
-  pSystemGeneral->pchAdminUser = o_strdup("admin");
-  pSystemGeneral->pchAdminPwd  = o_strdup("admin");
   pSystemGeneral->loginTime    = time(NULL); 
+  pSystemGeneral->pchAdminUser = o_strdup("admin");
+
+  if (h_query_select(pConnDB, "SELECT SECPassword FROM TAB_SECURITY_ACCOUNT where SECAccount='admin'", &result) == H_OK) {
+    pSystemGeneral->pchAdminPwd  = o_strdup(((struct _h_type_text *)result.data[0][0].t_data)->value);
+  } else {
+    pSystemGeneral->pchAdminPwd = o_strdup("admin");
+  } 
+
 }
 
 void initSystemGeneral(struct _h_connection *pConn) {
+  pConnDB = pConn;
   memset(&systemGeneral, 0, sizeof(SYSTEM_GENERAL));
   openConfig();
   loadSystemGeneral(&systemGeneral);
   closeConfig();
-  pConnDB = pConn;
 }
 
 SYSTEM_GENERAL* getSystemGeneral() {
