@@ -35,6 +35,13 @@
 
 #define LOGIN_TIMEOUT     300
 
+#define AUTHENTICATE_REQUEST(req, resp) \
+                              do { \
+                                if (!isAuthenticated(req, resp)) { \
+                                    return U_CALLBACK_UNAUTHORIZED; \
+                                } \
+                              } while(0)
+
 /**************************************************************************
  * TYPEDEFS
  **************************************************************************/
