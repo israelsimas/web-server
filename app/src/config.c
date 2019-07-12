@@ -33,8 +33,14 @@ BOOL getConfig(char *pchParamName, void *pParamValue, E_PARAM_TYPE eType) {
 
 	switch(eType) {
 		case TYPE_CHAR:
-		case TYPE_STRING:
-			*((char **)pParamValue) = strdup(iniparser_getstring(pIniFile, pchParamName, NULL));
+		case TYPE_STRING: {
+      char *pchParam = iniparser_getstring(pIniFile, pchParamName, NULL);
+        if (pchParam) {
+          *((char **)pParamValue) = strdup(pchParam);
+        } else {
+          *((char **)pParamValue) = NULL;
+        }
+      }
 			break;
 
 		case TYPE_BYTE:
