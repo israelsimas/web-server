@@ -898,17 +898,21 @@ int callback_export_contacts(const struct _u_request *request, struct _u_respons
 
   char *pchBuffer;
   int lenBuffer;
+  const char **ppKeys;
 
   AUTHENTICATE_REQUEST(request, response);
 
-  u_map_put(response->map_header, "Content-Type", "application/xml");
-  u_map_put(response->map_header, "Content-Disposition", "Attachment;filename=ContactData.xml");
-  
-  lenBuffer = getContactXML(&pchBuffer);
-  response->binary_body        = pchBuffer;
-  response->binary_body_length = lenBuffer;
-  
-  response->status = HTTP_SC_OK;
+  ppKeys = u_map_enum_keys(request->map_url);
+  if (ppKeys[0]) {
+    u_map_put(response->map_header, "Content-Type", "application/xml");
+    u_map_put(response->map_header, "Content-Disposition", "Attachment;filename=ContactData.xml");
+    
+    lenBuffer = getContactXML(&pchBuffer, ppKeys[0]);
+    response->binary_body        = pchBuffer;
+    response->binary_body_length = lenBuffer;
+    
+    response->status = HTTP_SC_OK;
+  }
 
   return U_CALLBACK_COMPLETE;
 }

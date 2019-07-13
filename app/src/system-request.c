@@ -226,7 +226,6 @@ int getAutoprovXML(char **ppchBuffer) {
   FILE *pf;
   int body_length = 0;
   long fsize;
-  char *pchCmd;
 
   system("lua /var/www/src/web_system_request.lua export_autoprov");
 
@@ -248,14 +247,15 @@ int getAutoprovXML(char **ppchBuffer) {
   return body_length;
 }
 
-int getContactXML(char **ppchBuffer) {
+int getContactXML(char **ppchBuffer, char *pchIds) {
 
   FILE *pf;
   int body_length = 0;
   long fsize;
   char *pchCmd;
 
-  system("lua /var/www/src/web_system_request.lua export_autoprov");
+  pchCmd = msprintf("lua /var/www/src/web_system_request.lua export_autoprov %s", pchIds);
+  system(pchCmd);
 
   pf = fopen("cat /data/contacts_exported.xml", "rb");
   if (pf) {
