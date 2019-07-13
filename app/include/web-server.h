@@ -25,8 +25,8 @@
 #define DATABASE_PATH   "/data/database.sql"
 
 #define POST_SIZE_MAX   1024
-#define PORT_HTTP_DEFAULT 443
-#define PORT_DEFAULT    80
+#define PORT_HTTP_DEFAULT 80
+#define PORT_DEFAULT    443
 #define WAIT_MAIN_LOOP  10
 
 #define SECURE_CONNECTION 1
