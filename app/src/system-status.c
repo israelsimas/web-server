@@ -96,7 +96,10 @@ BOOL isAuthenticated(const struct _u_request *request, struct _u_response *respo
 
 static void getRegisterStatus(WORD wAccount, WORD *wRegisterCode, BOOL *bRegisterICIP) {
 
-#if 1
+#ifdef __APPLE__
+  *wRegisterCode = 200;
+  *bRegisterICIP = 0;
+#else
   int sockfd, recvLen, slen; 
   char pchBuffer[BUFFER_REG_LENGHT]; 
   struct sockaddr_in servaddr; 
@@ -128,9 +131,6 @@ static void getRegisterStatus(WORD wAccount, WORD *wRegisterCode, BOOL *bRegiste
   }
 
   close(sockfd); 
-#else
-  *wRegisterCode = 200;
-  *bRegisterICIP = 0;
 #endif
 
   return;
