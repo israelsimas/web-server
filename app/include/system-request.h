@@ -61,4 +61,6 @@ void stopCaptureLog();
 
 int getAutoprovXML(char **ppchBuffer);
 
+int getContactXML(char **ppchBuffer);
+
 #endif

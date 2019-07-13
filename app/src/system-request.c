@@ -243,5 +243,34 @@ int getAutoprovXML(char **ppchBuffer) {
     fclose(pf);
   }
 
+  system("rm /data/autoprov_exported.xml");
+
+  return body_length;
+}
+
+int getContactXML(char **ppchBuffer) {
+
+  FILE *pf;
+  int body_length = 0;
+  long fsize;
+  char *pchCmd;
+
+  system("lua /var/www/src/web_system_request.lua export_autoprov");
+
+  pf = fopen("cat /data/contacts_exported.xml", "rb");
+  if (pf) {
+
+    fseek(pf, 0, SEEK_END);
+    fsize = ftell(pf);
+    *ppchBuffer = o_malloc(fsize + 1);
+    fread(*ppchBuffer, 1, fsize, pf);
+
+    *ppchBuffer[fsize] = 0;
+    body_length = o_strlen(*ppchBuffer);
+    fclose(pf);
+  }
+
+  system("rm /data/contacts_exported.xml");
+
   return body_length;
 }

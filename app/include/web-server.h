@@ -75,6 +75,7 @@
 #define END_FW_REQUEST          "/end_burnfirmware.cgi"
 #define BURN_STATUS_REQUEST     "/burn_status.cgi"
 #define EXPORT_AUTOPROV_XML     "/export_autoprovisioning.cgi"
+#define EXPORT_CONTACTS_XML     "/export_contacts.cgi"
 
 #define CONFIG_FILE             "/data/config.db"
 
@@ -302,6 +303,11 @@ int callback_end_fw(const struct _u_request *request, struct _u_response *respon
  * Callback function used to get XML from database 
  */ 
 int callback_export_autoprov(const struct _u_request *request, struct _u_response *response, void *user_data);
+
+/*
+ * Callback function used to get XML from contacts 
+ */ 
+int callback_export_contacts(const struct _u_request *request, struct _u_response *response, void *user_data);
 
 /*
  * Default callback function called if no endpoint has a match

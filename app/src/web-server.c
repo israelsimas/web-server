@@ -122,7 +122,8 @@ int main(int argc, char **argv) {
   ulfius_add_endpoint_by_val(&instance, "GET", BURN_FW_REQUEST, NULL, 0, &callback_burn_fw, NULL);  
   ulfius_add_endpoint_by_val(&instance, "GET", END_FW_REQUEST, NULL, 0, &callback_end_fw, NULL);
   ulfius_add_endpoint_by_val(&instance, "GET", BURN_STATUS_REQUEST, NULL, 0, &callback_burn_status, NULL);
-  ulfius_add_endpoint_by_val(&instance, "GET", EXPORT_AUTOPROV_XML, NULL, 0, &callback_export_autoprov, NULL);  
+  ulfius_add_endpoint_by_val(&instance, "GET", EXPORT_AUTOPROV_XML, NULL, 0, &callback_export_autoprov, NULL);
+  ulfius_add_endpoint_by_val(&instance, "GET", EXPORT_CONTACTS_XML, NULL, 0, &callback_export_contacts, NULL);  
   ulfius_add_endpoint_by_val(&instance, "POST", RESTART_REQUEST, NULL, 0, &callback_restart, NULL);
   ulfius_add_endpoint_by_val(&instance, "POST", RESTART_SYSLOG_REQUEST, NULL, 0, &callback_restart_syslog, NULL);
   ulfius_add_endpoint_by_val(&instance, "POST", FACTORY_RESET_REQUEST, NULL, 0, &callback_factory_reset, NULL);
@@ -885,6 +886,25 @@ int callback_export_autoprov(const struct _u_request *request, struct _u_respons
   u_map_put(response->map_header, "Content-Disposition", "Attachment;filename=Autoprovisioning.xml");
   
   lenBuffer = getAutoprovXML(&pchBuffer);
+  response->binary_body        = pchBuffer;
+  response->binary_body_length = lenBuffer;
+  
+  response->status = HTTP_SC_OK;
+
+  return U_CALLBACK_COMPLETE;
+}
+
+int callback_export_contacts(const struct _u_request *request, struct _u_response *response, void *user_data) {
+
+  char *pchBuffer;
+  int lenBuffer;
+
+  AUTHENTICATE_REQUEST(request, response);
+
+  u_map_put(response->map_header, "Content-Type", "application/xml");
+  u_map_put(response->map_header, "Content-Disposition", "Attachment;filename=ContactData.xml");
+  
+  lenBuffer = getContactXML(&pchBuffer);
   response->binary_body        = pchBuffer;
   response->binary_body_length = lenBuffer;
   
