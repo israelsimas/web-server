@@ -421,7 +421,7 @@ BOOL getBurningStatus(json_t *j_result) {
     return FALSE;
   }
 
-  pFile = fopen (FIRMWARE_UPLOAD_STATUS_FILE, "r");
+  pFile = fopen(FIRMWARE_UPLOAD_STATUS_FILE, "r");
   if (pFile) {
     fseek(pFile, 0, SEEK_END);
     length = ftell(pFile);
