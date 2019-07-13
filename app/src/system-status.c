@@ -842,3 +842,119 @@ BOOL getFwCloudVersion(json_t **j_result) {
 
 	return TRUE;
 }
+
+char *addIPv6Brackets(char *pchIpAddr) {
+
+	char *pchAddrBrackets = NULL;
+	int lenAddr = 0;
+
+	if (!pchIpAddr) {
+		return NULL;
+	}
+
+	if ((pchIpAddr[0] != '[') && (pchIpAddr[strlen(pchIpAddr) - 1] != ']')) {
+		lenAddr = strlen(pchIpAddr) + 3;
+		pchAddrBrackets = malloc(sizeof(char) * lenAddr);
+		memset(pchAddrBrackets, 0, lenAddr);
+		strcpy(pchAddrBrackets, "[");
+		strcat(pchAddrBrackets, pchIpAddr);
+		strcat(pchAddrBrackets, "]");
+
+		return pchAddrBrackets;
+	} else if ((pchIpAddr[0] != '[') && (pchIpAddr[strlen(pchIpAddr) - 1] == ']')) {
+			lenAddr = strlen(pchIpAddr) + 2;
+			pchAddrBrackets = malloc(sizeof(char) * lenAddr);
+			memset(pchAddrBrackets, 0, lenAddr);
+			strcpy(pchAddrBrackets, "[");
+			strcat(pchAddrBrackets, pchIpAddr);
+
+			return pchAddrBrackets;
+
+	} else if ((pchIpAddr[0] == '[') && (pchIpAddr[strlen(pchIpAddr) - 1] != ']')) {
+			lenAddr = strlen(pchIpAddr) + 2;
+			pchAddrBrackets = malloc(sizeof(char) * lenAddr);
+			memset(pchAddrBrackets, 0, lenAddr);
+			strcpy(pchAddrBrackets, pchIpAddr);
+			strcat(pchAddrBrackets, "]");
+
+			return pchAddrBrackets;
+	} else {
+		return pchIpAddr;
+	}
+}
+
+char *removeBracketsAddr(char *pchIpAddress) {
+
+	char *pchIpAddr = o_strdup(pchIpAddress);
+
+	if (!pchIpAddr) {
+		return NULL;
+	}
+
+	if (pchIpAddr[0] == '[') {
+		memmove(pchIpAddr, pchIpAddr+1, strlen(pchIpAddr));
+	}
+
+	if (pchIpAddr[o_strlen(pchIpAddr) -1] == ']') {
+		pchIpAddr[o_strlen(pchIpAddr) -1] = POINTER_NULL;
+	}
+
+	return pchIpAddr;
+}
+
+E_IP_ADDR_TYPE getIPAddrType(char *pchIpAddress) {
+
+	struct in_addr sin_addr;
+	struct in6_addr sin6_addr;
+	struct addrinfo hint, *pResult, *pResultIP;
+	int ret;
+	BOOL bHasIPv4, bHasIPv6;
+	E_IP_ADDR_TYPE type = IP_ADDR_TYPE_NONE;
+	char *pchIpAddr 		= removeBracketsAddr(pchIpAddress);
+
+	if (!pchIpAddr) {
+		return type;
+	}
+
+	if (inet_aton(pchIpAddr, &sin_addr)) {
+		return IP_ADDR_TYPE_IPV4;
+	}
+
+	if (inet_pton(AF_INET6, pchIpAddr, &sin6_addr)) {
+		return IP_ADDR_TYPE_IPV6;
+	}
+
+	bHasIPv4 = FALSE;
+	bHasIPv6 = FALSE;
+
+	pResult = NULL;
+	memset(&hint, 0, sizeof hint);
+	hint.ai_family = PF_UNSPEC;
+
+	ret = getaddrinfo(pchIpAddr, NULL, &hint, &pResult);
+	if (ret) {
+		free(pchIpAddr);
+		return IP_ADDR_TYPE_NONE;
+	}
+
+	for (pResultIP = pResult; pResultIP != NULL; pResultIP = pResultIP->ai_next) {
+		if (pResultIP->ai_family == AF_INET) {
+			bHasIPv4 = TRUE;
+		} else if (pResultIP->ai_family == AF_INET6) {
+			bHasIPv6 = TRUE;
+		}
+	}
+
+	if (bHasIPv4 && bHasIPv6) {
+		type = IP_ADDR_TYPE_IPV4_IPV6;
+	} else if (bHasIPv4) {
+		type = IP_ADDR_TYPE_IPV4_FQDN;
+	} else if (bHasIPv6) {
+		type = IP_ADDR_TYPE_IPV6_FQDN;
+	}
+
+	freeaddrinfo(pResult);
+	o_free(pchIpAddr);
+
+	return type;
+}

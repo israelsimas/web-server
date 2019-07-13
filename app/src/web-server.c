@@ -60,10 +60,15 @@ int main(int argc, char **argv) {
   
   // Set the framework port number
   struct _u_instance instance;
+  struct _u_instance instanceHTTP;
 
   if (ulfius_init_instance(&instance, PORT_DEFAULT, NULL, NULL) != SUCCESS) {
     return(1);
   }
+
+  if (ulfius_init_instance(&instanceHTTP, PORT_HTTP_DEFAULT, NULL, NULL) != SUCCESS) {
+    return(1);
+  }  
 
   connDB = h_connect_sqlite(DATABASE_PATH);
   if (!connDB) {
@@ -125,9 +130,17 @@ int main(int argc, char **argv) {
   ulfius_add_endpoint_by_val(&instance, "POST", SET_LANGUAGE_REQUEST, NULL, 0, &callback_set_language, NULL); 
   ulfius_add_endpoint_by_val(&instance, "POST", UPLOAD_CONFIG_REQUEST, NULL, 1, &callback_upload_file, NULL); 
   ulfius_add_endpoint_by_val(&instance, "GET", "*", NULL, 1, &callback_static_file, &mime_types);
+
+  // HTTP request to redirect
+  ulfius_add_endpoint_by_val(&instanceHTTP, "GET", NULL, "*", 0, &callback_redirect, NULL);  
   
   // default_endpoint declaration
   ulfius_set_default_endpoint(&instance, &callback_default, NULL);
+
+  status = ulfius_start_framework(&instanceHTTP);
+  if (status != SUCCESS) {
+    return(1);
+  }
 
   if (SECURE_CONNECTION) {
     // Open an https connection
@@ -280,6 +293,34 @@ static char *concatResultsToString(json_t *pListResult[], int lenQuerys) {
   }
 
   return pchResultJson;
+}
+
+int callback_redirect(const struct _u_request *request, struct _u_response* response, void *user_data) {
+
+  char *pchRedirect, *pchHost, *pchAddrHost, *pchToken;
+  const char **ppKeys;
+  int i;
+
+  pchHost = u_map_get(request->map_header, "Host");
+  if (pchHost) {
+    if (getIPAddrType(pchHost) == IP_ADDR_TYPE_IPV6) {
+      char *pchAddr = addIPv6Brackets(pchHost);
+      pchAddrHost = strdup(pchAddr);
+      o_free(pchAddr);
+    } else {
+      pchAddrHost = strdup(pchHost);
+    }
+
+    pchRedirect = msprintf("https://%s:%d%s", pchAddrHost, PORT_DEFAULT, request->http_url);
+    
+    ulfius_add_header_to_response(response, "Location", pchRedirect);
+    response->status = HTTP_SC_MOVED_TEMPORARILY;
+
+    o_free(pchAddrHost);
+    o_free(pchRedirect); 
+  }
+  
+  return U_CALLBACK_CONTINUE;
 }
 
 int callback_database(const struct _u_request *request, struct _u_response *response, void *user_data) {

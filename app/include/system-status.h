@@ -60,6 +60,15 @@ typedef struct SYSTEM_GENERAL {
   char *pchAdminPwd;  
 } SYSTEM_GENERAL;
 
+typedef enum {
+  IP_ADDR_TYPE_NONE,
+  IP_ADDR_TYPE_IPV4,
+  IP_ADDR_TYPE_IPV6,
+  IP_ADDR_TYPE_IPV4_FQDN,
+  IP_ADDR_TYPE_IPV6_FQDN,
+	IP_ADDR_TYPE_IPV4_IPV6,
+} E_IP_ADDR_TYPE;
+
 /**************************************************************************
  * INTERNAL FUNCTIONS
  **************************************************************************/
@@ -89,5 +98,11 @@ BOOL getGigaSupport(json_t **j_result);
 BOOL getVersionStatus(json_t **j_result);
 
 BOOL getFwCloudVersion(json_t **j_result);
+
+char *addIPv6Brackets(char *pchIpAddr);
+
+char *removeBracketsAddr(char *pchIpAddress);
+
+E_IP_ADDR_TYPE getIPAddrType(char *pchIpAddress);
 
 #endif
