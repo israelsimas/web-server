@@ -30,12 +30,12 @@
 #ifdef __APPLE__
   #define PORT_HTTP_DEFAULT 8080
   #define PORT_DEFAULT      8443
+  #define SECURE_CONNECTION 0
 #else
   #define PORT_HTTP_DEFAULT 80
   #define PORT_DEFAULT      443
+  #define SECURE_CONNECTION 1
 #endif
-
-#define SECURE_CONNECTION 1
 
 #define CERTIFICATE_KEY "/etc/certificates/cert.key"
 #define CERTIFICATE_PEM "/etc/certificates/cert.pem"
