@@ -392,8 +392,11 @@ static char *getIfGateway(char *pchIfName, BOOL isIPv6) {
 	} 
 
   if (!pchGateway) {
-    pchGateway = o_strdup("255.255.255.0");  
-  }  
+    pchGateway = o_strdup("0.0.0.0");  
+  } else if (o_strlen(pchGateway) == 0) {
+    o_free(pchGateway);
+    pchGateway = o_strdup("0.0.0.0");  
+  }
 
   return pchGateway;
 }
@@ -415,7 +418,10 @@ char *getMac() {
 
   if (!pchMAC) {
     pchMAC = o_strdup("00:00:00:00:00:00");  
-  }  
+  } else if (o_strlen(pchMAC) == 0) {
+    o_free(pchMAC);
+    pchMAC = o_strdup("00:00:00:00:00:00");  
+  }
 
   return pchMAC;
 }
