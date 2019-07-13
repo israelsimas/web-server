@@ -223,10 +223,25 @@ void stopCaptureLog() {
 
 int getAutoprovXML(char **ppchBuffer) {
 
+  FILE *pf;
   int body_length = 0;
+  long fsize;
+  char *pchCmd;
 
-  *ppchBuffer = msprintf("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n <root> <test>3</test> </root>");
-  body_length = o_strlen(*ppchBuffer);
+  system("lua /var/www/src/web_system_request.lua export_autoprov");
+
+  pf = fopen("cat /data/autoprov_exported.xml", "rb");
+  if (pf) {
+
+    fseek(pf, 0, SEEK_END);
+    fsize = ftell(pf);
+    *ppchBuffer = o_malloc(fsize + 1);
+    fread(*ppchBuffer, 1, fsize, pf);
+
+    *ppchBuffer[fsize] = 0;
+    body_length = o_strlen(*ppchBuffer);
+    fclose(pf);
+  }
 
   return body_length;
 }
