@@ -13,10 +13,14 @@
 #ifndef SYTEM_STATUS_H_
 #define SYTEM_STATUS_H_
 
-#if 1
-#define DEFAULT_INTERFACE "eth0"
-#else
-#define DEFAULT_INTERFACE "wlp3s0"
+#ifdef __APPLE__
+  #define DEFAULT_INTERFACE "en0"
+#elif __linux__
+  #if 1
+  #define DEFAULT_INTERFACE "eth0"
+  #else
+  #define DEFAULT_INTERFACE "wlp3s0"
+  #endif
 #endif
 
 #define INVALID_IP        "0"
