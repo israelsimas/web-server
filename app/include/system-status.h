@@ -42,6 +42,11 @@ extern "C" {
 #define BUFFER_REG_LENGHT 		    15
 #define PORT_SERVER_REG_STATUS    4849
 #define ENDPOINT_BUSY             0
+#define VERSION_LENGHT            10
+#define ACCOUNT_LENGHT            3
+#define USER_FIELD_LENGHT         10
+#define PRODUCT_NAME_LENGHT       10
+#define MODEL_NAME_LENGHT         10
 
 #define BUFFER_ENDP_LENGHT 	      20
 #define ENDPOINT_STATUS 		      "CMD_STATUS"

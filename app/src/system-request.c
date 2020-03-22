@@ -8,23 +8,11 @@
  *
  **************************************************************************/
 
-#include <base64.h>
 #include <database.h>
-#include <config.h>
 #include <jansson.h>
 #include <utils.h>
 #include <system-status.h>
 #include <system-request.h>
-#include <ifaddrs.h>
-#include <unistd.h>
-#include <arpa/inet.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <time.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/un.h>
-#include <ctype.h>
 #include <middleware.h>
 
 #define THIS_FILE "system-request.c"
@@ -59,8 +47,7 @@ void factoryReset() {
   system("/etc/rc5.d/S28mac start");
   system("killall control-call");
 
-  // TODO
-  //setSelfProvisioning('update_enable_config=1&update_url_server=undefined&update_path=&update_authType=2&update_username=&update_password=&update_protocol=3&update_turn_on=1&update_repeat=0&update_interval=undefined&update_weekly=0&update_begin_hour=&update_begin_minutes=&update_end_hour=&update_end_minutes=&weeks_mask=127', lighty.stat)	
+  // TODO: setSelfProvisioning('update_enable_config=1&update_url_server=undefined&update_path=&update_authType=2&update_username=&update_password=&update_protocol=3&update_turn_on=1&update_repeat=0&update_interval=undefined&update_weekly=0&update_begin_hour=&update_begin_minutes=&update_end_hour=&update_end_minutes=&weeks_mask=127', lighty.stat)	
 }
 
 void logoReset() {
@@ -71,8 +58,7 @@ void logoReset() {
 }
 
 void setLanguage() {
-  // TODO
-  // Not necessary to set language because Table update will change the language
+  // TODO: Not necessary to set language because Table update will change the language
 }
 
 void notifyTables(const char *pchTables) {
@@ -136,41 +122,41 @@ static void createAutopFile(struct _u_map *map_url) {
       pchParam = ppKeys[i];
       pchValue = u_map_get(map_url, ppKeys[i]);
 
-      if (!strcmp(pchParam, "update_repeat")) {
-        if (!strcmp(pchValue, "1"))  {
+      if (!o_strcmp(pchParam, "update_repeat")) {
+        if (!o_strcmp(pchValue, "1"))  {
           pchContent = msprintf("\nparams.periodic = true");
         } else {
            pchContent = msprintf("\nparams.periodic = false");
         }
-      } else if (!strcmp(pchParam, "update_weekly")) {
-        if (!strcmp(pchValue, "1"))  {
+      } else if (!o_strcmp(pchParam, "update_weekly")) {
+        if (!o_strcmp(pchValue, "1"))  {
           pchContent = msprintf("\nparams.weekly = true");
         } else {
            pchContent = msprintf("\nparams.weekly = false");
         }
-      } else if (!strcmp(pchParam, "weeks_mask")) {
+      } else if (!o_strcmp(pchParam, "weeks_mask")) {
         pchContent = msprintf("\nparams.weekdays = %s", pchValue);
-      } else if (!strcmp(pchParam, "update_interval")) {
+      } else if (!o_strcmp(pchParam, "update_interval")) {
         pchContent = msprintf("\nparams.period = %s", pchValue);
-      } else if (!strcmp(pchParam, "update_turn_on")) {
-        if (!strcmp(pchValue, "1"))  {
+      } else if (!o_strcmp(pchParam, "update_turn_on")) {
+        if (!o_strcmp(pchValue, "1"))  {
           pchContent = msprintf("\nparams.onBoot = true");
         } else {
            pchContent = msprintf("\nparams.onBoot = false");
         }
-      } else if (!strcmp(pchParam, "update_enable_config")) {
-        if (!strcmp(pchValue, "1"))  {
+      } else if (!o_strcmp(pchParam, "update_enable_config")) {
+        if (!o_strcmp(pchValue, "1"))  {
           pchContent = msprintf("\nparams.enable = true");
         } else {
            pchContent = msprintf("\nparams.enable = false");
         }
-      } else if (!strcmp(pchParam, "update_protocol")) {
+      } else if (!o_strcmp(pchParam, "update_protocol")) {
         pchContent = msprintf("\nparams.protocol = %s", pchValue);
-      } else if (!strcmp(pchParam, "update_authType")) {
+      } else if (!o_strcmp(pchParam, "update_authType")) {
         pchContent = msprintf("\nparams.authTye = %s", pchValue);
-      } else if (!strcmp(pchParam, "update_username")) {
+      } else if (!o_strcmp(pchParam, "update_username")) {
         pchContent = msprintf("\nparams.username = %s", pchValue);   
-      } else if (!strcmp(pchParam, "update_password")) {
+      } else if (!o_strcmp(pchParam, "update_password")) {
         pchContent = msprintf("\nparams.password = %s", pchValue);     
       } else {
         bValidParam = false;

@@ -8,26 +8,15 @@
  *
  **************************************************************************/
 
-#include <base64.h>
 #include <database.h>
 #include <config.h>
 #include <jansson.h>
 #include <utils.h>
 #include <system-status.h>
-#include <ifaddrs.h>
-#include <unistd.h>
-#include <arpa/inet.h>
-#include <sys/socket.h>
 #include <netdb.h>
 #include <time.h>
-#include <string.h>
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/un.h>
 #include <ctype.h>
 #include <ulfius.h>
-#include <time.h> 
 #include <iniparser.h>
 #include <network.h>
 
@@ -42,7 +31,7 @@ struct _db_connection *pConnDB;
 
 static void loadSystemGeneral(SYSTEM_GENERAL *pSystemGeneral) {
 
-  char *pchToken, pchVersion[10];
+  char *pchToken, pchVersion[VERSION_LENGHT];
   struct _db_result result;
 
 	iniparser_get_config(CFG_ACCOUNTS_NUMBER, &pSystemGeneral->accountNumber, TYPE_WORD);
@@ -106,7 +95,7 @@ static void getRegisterStatus(word wAccount, word *wRegisterCode, bool *bRegiste
   int sockfd, recvLen, slen; 
   char pchBuffer[BUFFER_REG_LENGHT]; 
   struct sockaddr_in servaddr; 
-  char pchAccount[3];
+  char pchAccount[ACCOUNT_LENGHT];
 
   sprintf(pchAccount, "%d", wAccount);
 
@@ -203,7 +192,7 @@ static int getEndpointStatus() {
 bool getEndpointFreeStatus(json_t ** j_result) {
 
 	int i;
-  char pchUserField[10];
+  char pchUserField[USER_FIELD_LENGHT];
   word wRegisterCode;
   bool bRegisterICIP;
 
@@ -220,7 +209,7 @@ bool getStatusAccount(json_t ** j_result) {
 
 	int i;
   json_t *j_data;
-  char pchUserField[10];
+  char pchUserField[USER_FIELD_LENGHT];
   word wRegisterCode;
   bool bRegisterICIP;
 
@@ -263,10 +252,10 @@ bool getStatusNetwork(json_t **j_result) {
     pchMask    = ntw_get_mac(pchInterface, true);
     pchGateway = ntw_get_if_gateway(pchInterface, false);
 
-    json_object_set_new(j_data, "add_ipv4", json_string(pchIPv4));
-    json_object_set_new(j_data, "netmask", json_string(pchMask));
+    json_object_set_new(j_data, "add_ipv4",     json_string(pchIPv4));
+    json_object_set_new(j_data, "netmask",      json_string(pchMask));
     json_object_set_new(j_data, "gateway_ipv4", json_string(pchGateway));
-    json_object_set_new(j_data, "type_ipv4", json_integer(ntw_get_interface_type(pchInterface, false, pConnDB)));
+    json_object_set_new(j_data, "type_ipv4",    json_integer(ntw_get_interface_type(pchInterface, false, pConnDB)));
 
     ntw_get_dns_servers(&pchDns1, &pchDns2, false);
     if (pchDns1) {
@@ -282,21 +271,21 @@ bool getStatusNetwork(json_t **j_result) {
     }
 
   } else {
-    json_object_set_new(j_data, "add_ipv4", json_string(""));
-    json_object_set_new(j_data, "netmask", json_string(""));
+    json_object_set_new(j_data, "add_ipv4",     json_string(""));
+    json_object_set_new(j_data, "netmask",      json_string(""));
     json_object_set_new(j_data, "gateway_ipv4", json_string(""));
-    json_object_set_new(j_data, "type_ipv4", json_string(""));
-    json_object_set_new(j_data, "dns1_ipv4", json_string(""));
-    json_object_set_new(j_data, "dns2_ipv4", json_string(""));
+    json_object_set_new(j_data, "type_ipv4",    json_string(""));
+    json_object_set_new(j_data, "dns1_ipv4",    json_string(""));
+    json_object_set_new(j_data, "dns2_ipv4",    json_string(""));
   }
 
   if ((protocolMode == 1) || (protocolMode == 2)) {
     pchIPv6    = ntw_get_if_addr(pchInterface, true);
     pchGateway = ntw_get_if_gateway(pchInterface, true);
 
-    json_object_set_new(j_data, "add_ipv6", json_string(pchIPv6));
+    json_object_set_new(j_data, "add_ipv6",     json_string(pchIPv6));
     json_object_set_new(j_data, "gateway_ipv6", json_string(pchGateway));
-    json_object_set_new(j_data, "type_ipv6", json_integer(ntw_get_interface_type(pchInterface, true, pConnDB)));
+    json_object_set_new(j_data, "type_ipv6",    json_integer(ntw_get_interface_type(pchInterface, true, pConnDB)));
 
     ntw_get_dns_servers(&pchDns1, &pchDns2, true);
     if (pchDns1) {
@@ -312,15 +301,15 @@ bool getStatusNetwork(json_t **j_result) {
     }
    
   } else {
-    json_object_set_new(j_data, "add_ipv6", json_string(""));
+    json_object_set_new(j_data, "add_ipv6",     json_string(""));
     json_object_set_new(j_data, "gateway_ipv6", json_string(""));
-    json_object_set_new(j_data, "type_ipv6", json_string(""));
-    json_object_set_new(j_data, "dns1_ipv6", json_string(""));
-    json_object_set_new(j_data, "dns2_ipv6", json_string(""));
+    json_object_set_new(j_data, "type_ipv6",    json_string(""));
+    json_object_set_new(j_data, "dns1_ipv6",    json_string(""));
+    json_object_set_new(j_data, "dns2_ipv6",    json_string(""));
   }  
 
   pchMac = ntw_get_mac(DEFAULT_INTERFACE, false);
-  json_object_set_new(j_data, "mac", json_string(pchMac));
+  json_object_set_new(j_data, "mac",       json_string(pchMac));
   json_object_set_new(j_data, "prot_mode", json_integer(protocolMode));
 
   o_free(pchInterface);
@@ -389,20 +378,20 @@ bool getStatusSystem(json_t **j_result) {
     pclose(pf);
   }  
 
-  json_object_set_new(j_data, "tmp_ntp", json_real(seconds));
+  json_object_set_new(j_data, "tmp_ntp",  json_real(seconds));
 
   sprintf(pchDate, "%d/%d/%d", tm.tm_mday, tm.tm_mon, tm.tm_year);
-  json_object_set_new(j_data, "date", json_string(pchDate));
+  json_object_set_new(j_data, "date",     json_string(pchDate));
 
   sprintf(pchDate, "%d:%d:%d", tm.tm_hour, tm.tm_min, tm.tm_sec);
-  json_object_set_new(j_data, "time24h", json_string(pchDate));
+  json_object_set_new(j_data, "time24h",  json_string(pchDate));
 
   sprintf(pchDate, "%d:%d:%d", tm.tm_hour/12, tm.tm_min, tm.tm_sec);
-  json_object_set_new(j_data, "time12h", json_string(pchDate));
+  json_object_set_new(j_data, "time12h",  json_string(pchDate));
 
-  json_object_set_new(j_data, "swMajor", json_integer(systemGeneral.wMajor));
-  json_object_set_new(j_data, "swMinor", json_integer(systemGeneral.wMinor));  
-  json_object_set_new(j_data, "swPatch", json_integer(systemGeneral.wPatch));  
+  json_object_set_new(j_data, "swMajor",  json_integer(systemGeneral.wMajor));
+  json_object_set_new(j_data, "swMinor",  json_integer(systemGeneral.wMinor));  
+  json_object_set_new(j_data, "swPatch",  json_integer(systemGeneral.wPatch));  
 
   json_object_set_new(j_data, "hwVersion", json_string("1")); // default hardware
 
@@ -501,16 +490,16 @@ bool getGeneralStatus(json_t **j_result) {
   } 
 
   pchMac = ntw_get_mac(DEFAULT_INTERFACE, false);
-  json_object_set_new(j_data, "mac", json_string(pchMac));
-  json_object_set_new(j_data, "version", json_string(systemGeneral.pchVersion));
+  json_object_set_new(j_data, "mac",      json_string(pchMac));
+  json_object_set_new(j_data, "version",  json_string(systemGeneral.pchVersion));
   if (systemGeneral.pchBranch) {
-    char pchModel[20];
+    char pchModel[MODEL_NAME_LENGHT];
     sprintf(pchModel, "%s_%s", systemGeneral.pchProduct, systemGeneral.pchBranch);
-    json_object_set_new(j_data, "model", json_string(pchModel));
+    json_object_set_new(j_data, "model",  json_string(pchModel));
   } else {
-    json_object_set_new(j_data, "model", json_string(systemGeneral.pchProduct));
+    json_object_set_new(j_data, "model",  json_string(systemGeneral.pchProduct));
   }
-  json_object_set_new(j_data, "numAcc", json_integer(systemGeneral.accountNumber));
+  json_object_set_new(j_data, "numAcc",   json_integer(systemGeneral.accountNumber));
 
   pchIPv4 = ntw_get_if_addr(DEFAULT_INTERFACE, false);
   json_object_set_new(j_data, "ip_address", json_string(pchIPv4));
@@ -565,7 +554,7 @@ bool getVersionStatus(json_t **j_result) {
 
   json_t *j_data;
   FILE *pf;
-  char pchUpper[10]; 
+  char pchUpper[PRODUCT_NAME_LENGHT]; 
 
   if (j_result == NULL) {
     return false;
@@ -608,11 +597,11 @@ bool getFwCloudVersion(json_t **j_result) {
   
   // pchVersionLatest = getStatusLatest(); // TODO 
   if (pchVersionLatest) {
-    json_object_set_new(j_data, "captureFileFail", json_false());
-    json_object_set_new(j_data, "versionLatest", json_string(pchVersionLatest));
-    json_object_set_new(j_data, "actualFwVersion", json_string(systemGeneral.pchVersion));
+    json_object_set_new(j_data, "captureFileFail",  json_false());
+    json_object_set_new(j_data, "versionLatest",    json_string(pchVersionLatest));
+    json_object_set_new(j_data, "actualFwVersion",  json_string(systemGeneral.pchVersion));
   } else {
-    json_object_set_new(j_data, "captureFileFail", json_true());
+    json_object_set_new(j_data, "captureFileFail",  json_true());
   }
   
   json_array_append_new(*j_result, j_data);
