@@ -30,6 +30,11 @@ extern "C" {
 
 #define FIRMWARE_UPLOAD_STATUS_FILE "/tmp/burningPercent"
 
+#define VERSION_FIRMWARE_TEMPLATE   "%d.%d.%d"
+
+#define INVALID_FILE_UPLOAD_MSG     "Invalid file type to upload"
+#define FIRMWARE_UPDATE_DONE        "fw_update_done"
+
 #define IS_FIRST_PACKET(offset) ((offset==0)?true:false)
 
 #define INVALID_RING_PK       0

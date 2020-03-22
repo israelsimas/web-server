@@ -15,35 +15,27 @@
 #include <utils.h>
 #include <system-status.h>
 #include <system-request.h>
-#include <ifaddrs.h>
-#include <unistd.h>
-#include <arpa/inet.h>
-#include <sys/socket.h>
-#include <netdb.h>
 #include <time.h>
 #include <string.h>
 #include <stdio.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/un.h>
-#include <ctype.h>
 #include <file-process.h>
 
 #define THIS_FILE "file-process.c"
 
-FILE *pFileConfig   = NULL;
-FILE *pFileLogo     = NULL;
-FILE *pFilePatch    = NULL;
-FILE *pFileRing     = NULL;
-FILE *pFileContacts = NULL;
-FILE *pFileFirmware = NULL;
+FILE *pFileConfig, *pFileLogo, *pFilePatch, *pFileRing, *pFileContacts, *pFileFirmware;
 struct _db_connection *connDatabase;
 bool bValidFirmware = true;
 int statusFirmware  = FIRMWARE_VALID;
 char *pchVersionFirmware = NULL;
 
 void initFileProcess(struct _db_connection *connDB) {
-  connDatabase = connDB;
+  connDatabase  = connDB;
+  pFileConfig   = NULL;
+  pFileLogo     = NULL;
+  pFilePatch    = NULL;
+  pFileRing     = NULL;
+  pFileContacts = NULL;
+  pFileFirmware = NULL;  
 }
 
 int getFirmwareStatus() {
@@ -51,11 +43,12 @@ int getFirmwareStatus() {
 }
 
 static bool isValidFirmware(const char *data) {
+
   FIRMWARE_HEADER *pFirmHeader;
   SYSTEM_GENERAL *pSystem = getSystemGeneral();
   char *pchData = (char *)data;
 
-  pchData++; // 0x55 jump
+  pchData++; // 0x55 jump (header byte)
 
   pFirmHeader = (FIRMWARE_HEADER *)pchData;
   
@@ -69,12 +62,12 @@ static bool isValidFirmware(const char *data) {
     return false;
   }
 
-  if ((pSystem->wMajor == pFirmHeader->major) && (pSystem->wMinor == pFirmHeader->minor) && (pSystem->wPatch == pFirmHeader->patch) ) {
+  if ((pSystem->wMajor == pFirmHeader->major) && (pSystem->wMinor == pFirmHeader->minor) && (pSystem->wPatch == pFirmHeader->patch)) {
     statusFirmware = FIRMWARE_INVALID_VERSION;
     return false;
   }
 
-  pchVersionFirmware  = msprintf("%d.%d.%d", pFirmHeader->major, pFirmHeader->minor, pFirmHeader->patch);
+  pchVersionFirmware  = msprintf(VERSION_FIRMWARE_TEMPLATE, pFirmHeader->major, pFirmHeader->minor, pFirmHeader->patch);
   statusFirmware      = FIRMWARE_VALID;
   return true;
 }
@@ -102,7 +95,7 @@ static char *getFileName(E_UPLOAD_FILE_TYPE eType) {
       return UPLOAD_FILENAME_FIRMWARE;
 
     default:
-      log_error("Invalid file type to upload");
+      log_error(INVALID_FILE_UPLOAD_MSG);
       return NULL;
   }
 }
@@ -136,7 +129,7 @@ static void updateFileUpload(E_UPLOAD_FILE_TYPE eType, FILE *pFile) {
       break;
 
     default:
-      log_error("Invalid file type to upload");
+      log_error(INVALID_FILE_UPLOAD_MSG);
       return;
       break;
   } 
@@ -165,7 +158,7 @@ static FILE *getFileUpload(E_UPLOAD_FILE_TYPE eType) {
       return pFileFirmware;
 
     default:
-      log_error("Invalid file type to upload");
+      log_error(INVALID_FILE_UPLOAD_MSG);
       return NULL;
   }  
 }
@@ -191,10 +184,10 @@ void loadUploadFile(const char *data, uint64_t off, size_t size, E_UPLOAD_FILE_T
     if (eType == UPLOAD_FILE_FIRMWARE) {
       bValidFirmware = isValidFirmware(data);
       if (bValidFirmware) {
-        generalNotify("fw_update_done");
+        generalNotify(FIRMWARE_UPDATE_DONE);
         stopAppsSystem();
       } else {
-        generalNotify("fw_update_done");
+        generalNotify(FIRMWARE_UPDATE_DONE);
       }
     }
 
@@ -243,7 +236,7 @@ void closeUploadFile(E_UPLOAD_FILE_TYPE eType) {
       break;
 
     default:
-      log_error("Invalid file type to upload");
+      log_error(INVALID_FILE_UPLOAD_MSG);
       break;
   }
 }
@@ -369,14 +362,14 @@ static char *getFreePartition() {
 
 int updateFirmware() {
 
-  int status = SUCCESS;
-  char *pchCmd = NULL;
+  int status    = SUCCESS;
+  char *pchCmd  = NULL;
 
-  // pchCmd = msprintf("burn-firmware  -f %s -p %s", UPLOAD_FILENAME_FIRMWARE, getFreePartition());
-  // system(pchCmd);
-  // o_free(pchCmd);
-
-//  sleep(60);
+#if 0 // TODO Firmware burner 
+  pchCmd = msprintf("burn-firmware  -f %s -p %s", UPLOAD_FILENAME_FIRMWARE, getFreePartition());
+  system(pchCmd);
+  o_free(pchCmd);
+#endif  
 
   return status;
 }
