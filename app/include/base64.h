@@ -13,6 +13,10 @@
 #ifndef BASE64_H
 #define BASE64_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**************************************************************************
  * INCLUDES
  **************************************************************************/
@@ -57,5 +61,9 @@ unsigned char *b64_decode(const char *, size_t);
  * Returns a `unsigned char *' base64 decoded string + size of decoded string.
  */
 unsigned char *b64_decode_ex (const char *, size_t, size_t *);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* BASE64_H */

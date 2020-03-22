@@ -16,6 +16,10 @@
 
 #include <ulfius.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**************************************************************************
  * DEFINITIONS
  **************************************************************************/
@@ -61,6 +65,10 @@ void stopCaptureLog();
 
 int getAutoprovXML(char **ppchBuffer);
 
-int getContactXML(char **ppchBuffer, char *pchIds);
+int getContactXML(char **ppchBuffer, const char *pchIds);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

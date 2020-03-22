@@ -26,7 +26,7 @@
 
 #define FIRMWARE_UPLOAD_STATUS_FILE "/tmp/burningPercent"
 
-#define IS_FIRST_PACKET(offset) ((offset==0)?TRUE:FALSE)
+#define IS_FIRST_PACKET(offset) ((offset==0)?true:false)
 
 #define INVALID_RING_PK 0
 
@@ -78,7 +78,7 @@ void closeUploadFile(E_UPLOAD_FILE_TYPE eType);
 
 void updateConfig();
 
-void updateRing(char *pchRingName);
+void updateRing(const char *pchRingName);
 
 void updateLogo();
 
@@ -96,6 +96,6 @@ void restartAppsSystem();
 
 void closeFwupdate(char **ppchMessage);
 
-BOOL getBurningStatus(json_t *j_result);
+bool getBurningStatus(json_t *j_result);
 
 #endif

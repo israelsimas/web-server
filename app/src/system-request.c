@@ -110,10 +110,10 @@ void setChangeBootPartition(int bootPartition) {
 static void createAutopFile(struct _u_map *map_url) {
 
   int i, size;
-  char *pchContent, *pchParam, *pchValue;
-  const char **ppKeys;
+  char *pchContent;
+  const char **ppKeys, *pchParam, *pchValue;
   FILE *pFile = fopen("/data/autop_params.lua", "rb");
-  BOOL bValidParam = FALSE;
+  bool bValidParam = false;
 
   system("rm /data/autop_params.lua");
 
@@ -131,7 +131,7 @@ static void createAutopFile(struct _u_map *map_url) {
 
     for (i = 0; i < map_url->nb_values; i++) {
 
-      bValidParam = TRUE;
+      bValidParam = true;
       pchParam = ppKeys[i];
       pchValue = u_map_get(map_url, ppKeys[i]);
 
@@ -172,7 +172,7 @@ static void createAutopFile(struct _u_map *map_url) {
       } else if (!strcmp(pchParam, "update_password")) {
         pchContent = msprintf("\nparams.password = %s", pchValue);     
       } else {
-        bValidParam = FALSE;
+        bValidParam = false;
       }
 
       if (bValidParam) {
@@ -247,7 +247,7 @@ int getAutoprovXML(char **ppchBuffer) {
   return body_length;
 }
 
-int getContactXML(char **ppchBuffer, char *pchIds) {
+int getContactXML(char **ppchBuffer, const char *pchIds) {
 
   FILE *pf;
   int body_length = 0;

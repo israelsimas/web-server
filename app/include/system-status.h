@@ -13,6 +13,10 @@
 #ifndef SYTEM_STATUS_H_
 #define SYTEM_STATUS_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifdef __APPLE__
   #define DEFAULT_INTERFACE "en0"
 #elif __linux__
@@ -54,9 +58,9 @@ typedef struct SYSTEM_GENERAL {
   char *pchBranch;
   char *pchDatabasePath;
   char *pchVersion;
-  WORD wMajor;
-  WORD wMinor;
-  WORD wPatch;   
+  word wMajor;
+  word wMinor;
+  word wPatch;   
   int accountNumber;
   int dev_id;
   time_t loginTime;
@@ -85,28 +89,32 @@ char *getActiveInterface();
 
 char *getMac();
 
-BOOL getRegisterStatusAccount(json_t ** j_result, WORD wAccount);
+bool getRegisterStatusAccount(json_t ** j_result, word wAccount);
 
-BOOL getEndpointFreeStatus(json_t ** j_result);
+bool getEndpointFreeStatus(json_t ** j_result);
 
-BOOL getStatusAccount(json_t ** j_result);
+bool getStatusAccount(json_t ** j_result);
 
-BOOL getStatusNetwork(json_t ** j_result);
+bool getStatusNetwork(json_t ** j_result);
 
-BOOL getStatusSystem(json_t ** j_result);
+bool getStatusSystem(json_t ** j_result);
 
-BOOL getGeneralStatus(json_t **j_result);
+bool getGeneralStatus(json_t **j_result);
 
-BOOL getGigaSupport(json_t **j_result);
+bool getGigaSupport(json_t **j_result);
 
-BOOL getVersionStatus(json_t **j_result);
+bool getVersionStatus(json_t **j_result);
 
-BOOL getFwCloudVersion(json_t **j_result);
+bool getFwCloudVersion(json_t **j_result);
 
 char *addIPv6Brackets(char *pchIpAddr);
 
 char *removeBracketsAddr(char *pchIpAddress);
 
 E_IP_ADDR_TYPE getIPAddrType(char *pchIpAddress);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

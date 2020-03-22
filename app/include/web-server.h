@@ -13,6 +13,10 @@
 #ifndef WEB_SERVER_H_
 #define WEB_SERVER_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**************************************************************************
  * INCLUDES
  **************************************************************************/
@@ -337,5 +341,9 @@ const char *getFilenameExt(const char *pchPath);
  * Return content from a file
  */
 char *readFile(const char *pchFilename);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

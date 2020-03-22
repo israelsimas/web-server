@@ -39,7 +39,7 @@ FILE *pFileRing = NULL;
 FILE *pFileContacts = NULL;
 FILE *pFileFirmware = NULL;
 struct _h_connection *connDatabase;
-BOOL bValidFirmware = TRUE;
+bool bValidFirmware = true;
 int statusFirmware = FIRMWARE_VALID;
 char *pchVersionFirmware = NULL;
 
@@ -51,32 +51,33 @@ int getFirmwareStatus() {
   return statusFirmware;
 }
 
-static BOOL isValidFirmware(const char *data) {
+static bool isValidFirmware(const char *data) {
   FIRMWARE_HEADER *pFirmHeader;
   SYSTEM_GENERAL *pSystem = getSystemGeneral();
-  char *pchData = data;
+  char *pchData = (char *)data;
 
-  pchData++;
+  pchData++; // 0x55 jump
+
   pFirmHeader = (FIRMWARE_HEADER *)pchData;
   
   if (data[0] != FIRMWARE_HEADER_BYTE) {
     statusFirmware = FIRMWARE_INVALID_FILE;
-    return FALSE;
+    return false;
   }
 
   if (pSystem->dev_id != pFirmHeader->dev_id) {
     statusFirmware = FIRMWARE_INVALID_PRODUCT;
-    return FALSE;
+    return false;
   }
 
   if ((pSystem->wMajor == pFirmHeader->major) && (pSystem->wMinor == pFirmHeader->minor) && (pSystem->wPatch == pFirmHeader->patch) ) {
     statusFirmware = FIRMWARE_INVALID_VERSION;
-    return FALSE;
+    return false;
   }
 
   pchVersionFirmware = msprintf("%d.%d.%d", pFirmHeader->major, pFirmHeader->minor, pFirmHeader->patch);
   statusFirmware = FIRMWARE_VALID;
-  return TRUE;
+  return true;
 }
 
 static char *getFileName(E_UPLOAD_FILE_TYPE eType) {
@@ -265,18 +266,18 @@ void updateConfig() {
   system("rm /tmp/config.db");
 }
 
-static BOOL addRing(char *pchRingName) {
+static bool addRing(const char *pchRingName) {
 
   char *pchQuery = msprintf("INSERT INTO TAB_SYSTEM_RING (Account, SYSRingtype, SYSRingName) VALUES (0, 2, '%s');", pchRingName);
 
   if (!pchQuery) {
-    return FALSE;
+    return false;
   }
 
   if (h_query_insert(connDatabase, pchQuery) == H_OK) {
-    return TRUE;
+    return true;
   } else {
-    return FALSE;
+    return false;
   }
 } 
 
@@ -295,7 +296,7 @@ static int getPkFromLastInsertedRing() {
   return INVALID_RING_PK;
 }
 
-void updateRing(char *pchRingName) {
+void updateRing(const char *pchRingName) {
 
 	if (addRing(pchRingName)) {
     int ringId = getPkFromLastInsertedRing();
@@ -411,14 +412,14 @@ void restartAppsSystem() {
 
 int percentageNum = 0;
 
-BOOL getBurningStatus(json_t *j_result) {
+bool getBurningStatus(json_t *j_result) {
   
   FILE *pFile = NULL;
   char *pchPercent;
   int length;
 
   if (j_result == NULL) {
-    return FALSE;
+    return false;
   }
 
   pFile = fopen(FIRMWARE_UPLOAD_STATUS_FILE, "r");
@@ -438,5 +439,5 @@ BOOL getBurningStatus(json_t *j_result) {
 
   json_object_set_new(j_result, "percent", json_string(pchPercent));
 
-	return TRUE; 
+	return true; 
 }

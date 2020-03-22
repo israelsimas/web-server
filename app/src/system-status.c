@@ -29,8 +29,11 @@
 #include <ctype.h>
 #include <ulfius.h>
 #include <time.h> 
+#include <iniparser.h>
 
-#define MSG_CONFIRM 0
+#ifndef	MSG_CONFIRM
+  #define MSG_CONFIRM 0
+#endif
 
 #define THIS_FILE "system-status.c"
 
@@ -42,12 +45,12 @@ static void loadSystemGeneral(SYSTEM_GENERAL *pSystemGeneral) {
   char *pchToken, pchVersion[10];
   struct _h_result result;
 
-	getConfig(CFG_ACCOUNTS_NUMBER, &pSystemGeneral->accountNumber, TYPE_WORD);
-	getConfig(CFG_PRODUCT, &pSystemGeneral->pchProduct, TYPE_STRING);
-	getConfig(CFG_PRODUCT_VERSION, &pSystemGeneral->pchVersion, TYPE_STRING);
-	getConfig(CFG_BRANCH, &pSystemGeneral->pchBranch, TYPE_STRING);
-	getConfig(CFG_DATABASE, &pSystemGeneral->pchDatabasePath, TYPE_STRING);
-  getConfig(CFG_DEV_ID, &pSystemGeneral->dev_id, TYPE_WORD);
+	iniparser_get_config(CFG_ACCOUNTS_NUMBER, &pSystemGeneral->accountNumber, TYPE_WORD);
+	iniparser_get_config(CFG_PRODUCT, &pSystemGeneral->pchProduct, TYPE_STRING);
+	iniparser_get_config(CFG_PRODUCT_VERSION, &pSystemGeneral->pchVersion, TYPE_STRING);
+	iniparser_get_config(CFG_BRANCH, &pSystemGeneral->pchBranch, TYPE_STRING);
+	iniparser_get_config(CFG_DATABASE, &pSystemGeneral->pchDatabasePath, TYPE_STRING);
+  iniparser_get_config(CFG_DEV_ID, &pSystemGeneral->dev_id, TYPE_WORD);
 
   o_strcpy(pchVersion, pSystemGeneral->pchVersion);
   pchToken = strtok(pchVersion, ".");
@@ -71,30 +74,30 @@ static void loadSystemGeneral(SYSTEM_GENERAL *pSystemGeneral) {
 void initSystemGeneral(struct _h_connection *pConn) {
   pConnDB = pConn;
   memset(&systemGeneral, 0, sizeof(SYSTEM_GENERAL));
-  openConfig();
+  iniparser_open();
   loadSystemGeneral(&systemGeneral);
-  closeConfig();
+  iniparser_close();
 }
 
 SYSTEM_GENERAL* getSystemGeneral() {
   return &systemGeneral;
 }
 
-BOOL isAuthenticated(const struct _u_request *request, struct _u_response *response) {
+bool isAuthenticated(const struct _u_request *request, struct _u_response *response) {
 
   if (request->auth_basic_user != NULL && request->auth_basic_password != NULL && 0 == o_strcmp(request->auth_basic_user, systemGeneral.pchAdminUser) && 0 == o_strcmp(request->auth_basic_password, systemGeneral.pchAdminPwd) && (time(NULL) < (systemGeneral.loginTime + LOGIN_TIMEOUT))) {
     systemGeneral.loginTime = time(NULL);
-    return TRUE;
+    return true;
   } else {
     systemGeneral.loginTime = time(NULL);
     ulfius_set_string_body_response(response, 401, "Error authentication");
     u_map_put(response->map_header, "WWW-Authenticate", "Basic realm=\"IP phone Intelbras (INTELBRAS)\"");
     u_map_put(response->map_header, "Connection", "close");
-    return FALSE;
+    return false;
   }
 }
 
-static void getRegisterStatus(WORD wAccount, WORD *wRegisterCode, BOOL *bRegisterICIP) {
+static void getRegisterStatus(word wAccount, word *wRegisterCode, bool *bRegisterICIP) {
 
 #ifdef __APPLE__
   *wRegisterCode = 200;
@@ -136,22 +139,22 @@ static void getRegisterStatus(WORD wAccount, WORD *wRegisterCode, BOOL *bRegiste
   return;
 }
 
-BOOL getRegisterStatusAccount(json_t ** j_result, WORD wAccount) {
+bool getRegisterStatusAccount(json_t ** j_result, word wAccount) {
 
 	int i;
   json_t *j_data;
   char pchUserField[10];
-  WORD wRegisterCode;
-  BOOL bRegisterICIP;
+  word wRegisterCode;
+  bool bRegisterICIP;
 
   if (j_result == NULL) {
-    return FALSE;
+    return false;
   }
 
   j_data = json_object();
   if (j_data == NULL) {
     json_decref(*j_result); 
-    return FALSE;
+    return false;
   } 
  
 	for (i = 0; i < systemGeneral.accountNumber; i++) {
@@ -163,7 +166,7 @@ BOOL getRegisterStatusAccount(json_t ** j_result, WORD wAccount) {
 
   json_array_append_new(*j_result, j_data);
 
-	return TRUE;
+	return true;
 }
 
 static int getEndpointStatus() {
@@ -196,32 +199,32 @@ static int getEndpointStatus() {
 
 }
 
-BOOL getEndpointFreeStatus(json_t ** j_result) {
+bool getEndpointFreeStatus(json_t ** j_result) {
 
 	int i;
   char pchUserField[10];
-  WORD wRegisterCode;
-  BOOL bRegisterICIP;
+  word wRegisterCode;
+  bool bRegisterICIP;
 
   if (j_result == NULL) {
-    return FALSE;
+    return false;
   }
 
   json_object_set_new(*j_result, "endpointsFree", json_integer(getEndpointStatus()));
   
-	return TRUE;
+	return true;
 }
 
-BOOL getStatusAccount(json_t ** j_result) {
+bool getStatusAccount(json_t ** j_result) {
 
 	int i;
   json_t *j_data;
   char pchUserField[10];
-  WORD wRegisterCode;
-  BOOL bRegisterICIP;
+  word wRegisterCode;
+  bool bRegisterICIP;
 
   if (j_result == NULL) {
-    return FALSE;
+    return false;
   }
  
 	for (i = 0; i < systemGeneral.accountNumber; i++) {
@@ -230,7 +233,7 @@ BOOL getStatusAccount(json_t ** j_result) {
     json_object_set_new(*j_result, pchUserField, json_integer(wRegisterCode));
 	}
 
-	return TRUE;
+	return true;
 }
 
 char *getActiveInterface() {
@@ -333,7 +336,7 @@ static char *getMaskaddr(char *pchIfName, int typeINET) {
 	return pchAddr;
 }
 
-static int getInterfaceType(char *pchIfName, BOOL isIPv6) {
+static int getInterfaceType(char *pchIfName, bool isIPv6) {
 
   char *pchQuery;
   char *pchTable;
@@ -369,7 +372,7 @@ static int getInterfaceType(char *pchIfName, BOOL isIPv6) {
   return interfaceType;
 }
 
-static char *getIfGateway(char *pchIfName, BOOL isIPv6) {
+static char *getIfGateway(char *pchIfName, bool isIPv6) {
 
   char *pchGateway = NULL;
 	FILE *pf;
@@ -426,10 +429,10 @@ char *getMac() {
   return pchMAC;
 }
 
-void get_dns_servers(char **ppchDns1, char **ppchDns2, BOOL isIPv6) {
+void get_dns_servers(char **ppchDns1, char **ppchDns2, bool isIPv6) {
   FILE *pf;
   char line[200] , *pchDNS;
-  BOOL bDNS1 = TRUE;
+  bool bDNS1 = true;
 
   if (isIPv6) {
     pf = popen("cat /etc/resolvIPv6.conf", "r");  
@@ -454,7 +457,7 @@ void get_dns_servers(char **ppchDns1, char **ppchDns2, BOOL isIPv6) {
 
       if (pchDNS && bDNS1) {
         *ppchDns1 = o_strdup(pchDNS);
-        bDNS1 = FALSE;
+        bDNS1 = false;
       } else if (pchDNS) {
         *ppchDns2 = o_strdup(pchDNS);
       }
@@ -464,14 +467,14 @@ void get_dns_servers(char **ppchDns1, char **ppchDns2, BOOL isIPv6) {
   pclose(pf);
 }
 
-BOOL getStatusNetwork(json_t **j_result) {
+bool getStatusNetwork(json_t **j_result) {
 
   json_t *j_data;
   int protocolMode;
   char *pchInterface, *pchMac, *pchIPv4, *pchIPv6, *pchMask, *pchGateway, *pchDns1, *pchDns2; 
 
   if (j_result == NULL) {
-    return FALSE;
+    return false;
   }
 
   j_data = *j_result;
@@ -488,14 +491,14 @@ BOOL getStatusNetwork(json_t **j_result) {
 
     pchIPv4    = getIfaddr(pchInterface, AF_INET);
     pchMask    = getMaskaddr(pchInterface, AF_INET);
-    pchGateway = getIfGateway(pchInterface, FALSE);
+    pchGateway = getIfGateway(pchInterface, false);
 
     json_object_set_new(j_data, "add_ipv4", json_string(pchIPv4));
     json_object_set_new(j_data, "netmask", json_string(pchMask));
     json_object_set_new(j_data, "gateway_ipv4", json_string(pchGateway));
-    json_object_set_new(j_data, "type_ipv4", json_integer(getInterfaceType(pchInterface, FALSE)));
+    json_object_set_new(j_data, "type_ipv4", json_integer(getInterfaceType(pchInterface, false)));
 
-    get_dns_servers(&pchDns1, &pchDns2, FALSE);
+    get_dns_servers(&pchDns1, &pchDns2, false);
     if (pchDns1) {
       json_object_set_new(j_data, "dns1_ipv4", json_string(pchDns1));
     } else {
@@ -519,13 +522,13 @@ BOOL getStatusNetwork(json_t **j_result) {
 
   if ((protocolMode == 1) || (protocolMode == 2)) {
     pchIPv6    = getIfaddr(pchInterface, AF_INET6);
-    pchGateway = getIfGateway(pchInterface, TRUE);
+    pchGateway = getIfGateway(pchInterface, true);
 
     json_object_set_new(j_data, "add_ipv6", json_string(pchIPv6));
     json_object_set_new(j_data, "gateway_ipv6", json_string(pchGateway));
-    json_object_set_new(j_data, "type_ipv6", json_integer(getInterfaceType(pchInterface, TRUE)));
+    json_object_set_new(j_data, "type_ipv6", json_integer(getInterfaceType(pchInterface, true)));
 
-    get_dns_servers(&pchDns1, &pchDns2, TRUE);
+    get_dns_servers(&pchDns1, &pchDns2, true);
     if (pchDns1) {
       json_object_set_new(j_data, "dns1_ipv6", json_string(pchDns1));
     } else {
@@ -558,10 +561,10 @@ BOOL getStatusNetwork(json_t **j_result) {
   o_free(pchDns1);
   o_free(pchDns2);   
 
-	return TRUE;
+	return true;
 }
 
-BOOL getStatusSystem(json_t **j_result) {
+bool getStatusSystem(json_t **j_result) {
 
   json_t *j_data;
   FILE *pf; 
@@ -571,7 +574,7 @@ BOOL getStatusSystem(json_t **j_result) {
   char pchCmdRet[SIZE_STR_STATUS_SYS];
 
   if (j_result == NULL) {
-    return FALSE;
+    return false;
   }
 
   j_data = *j_result;
@@ -634,7 +637,7 @@ BOOL getStatusSystem(json_t **j_result) {
 
   json_object_set_new(j_data, "hwVersion", json_string("1")); // default hardware
 
-	return TRUE;
+	return true;
 }
 
 static char *getAccountsName() {
@@ -643,8 +646,8 @@ static char *getAccountsName() {
   json_t *pResult;
   char *pchAccountsName, pchField[SIZE_STR_STATUS_SYS];
   int i, account;
-  WORD wRegisterCode;
-  BOOL bRegisterICIP;
+  word wRegisterCode;
+  bool bRegisterICIP;
 
   pchAccountsName = NULL;
 
@@ -654,7 +657,7 @@ static char *getAccountsName() {
     j_data = json_object();
     if (j_data == NULL) {
       json_decref(pResult); 
-      return FALSE;
+      return false;
     }
 
     for (i = 0; i < systemGeneral.accountNumber; i++) {
@@ -713,20 +716,20 @@ static char *getAccountsName() {
   return pchAccountsName;
 }
 
-BOOL getGeneralStatus(json_t **j_result) {
+bool getGeneralStatus(json_t **j_result) {
 
   json_t *j_data;
   FILE *pf;
   char *pchMac, *pchIPv4, *pchAccountsName; 
 
   if (j_result == NULL) {
-    return FALSE;
+    return false;
   }
 
   j_data = json_object();
   if (j_data == NULL) {
     json_decref(*j_result); 
-    return FALSE;
+    return false;
   } 
 
   pchMac = getMac();
@@ -753,30 +756,30 @@ BOOL getGeneralStatus(json_t **j_result) {
 
   json_array_append_new(*j_result, j_data);
 
-	return TRUE;
+	return true;
 }
 
-BOOL getGigaSupport(json_t **j_result) {
+bool getGigaSupport(json_t **j_result) {
 
   json_t *j_data;
   FILE *pf;
   char *pchMac, *pchIPv4, *pchAccountsName; 
 
   if (j_result == NULL) {
-    return FALSE;
+    return false;
   }
 
   j_data = json_object();
   if (j_data == NULL) {
     json_decref(*j_result); 
-    return FALSE;
+    return false;
   } 
 
   json_object_set_new(j_data, "supportGiga", json_string("0")); // Disable giga support
 
   json_array_append_new(*j_result, j_data);
 
-	return TRUE;
+	return true;
 }
 
 void convertToUpperCase(char *pchSrc, char *pchDest) {
@@ -789,20 +792,20 @@ void convertToUpperCase(char *pchSrc, char *pchDest) {
   *pchDest = POINTER_NULL;
 }
 
-BOOL getVersionStatus(json_t **j_result) {
+bool getVersionStatus(json_t **j_result) {
 
   json_t *j_data;
   FILE *pf;
   char pchUpper[10]; 
 
   if (j_result == NULL) {
-    return FALSE;
+    return false;
   }
 
   j_data = json_object();
   if (j_data == NULL) {
     json_decref(*j_result); 
-    return FALSE;
+    return false;
   } 
   
   json_object_set_new(j_data, "version", json_string(systemGeneral.pchVersion));
@@ -815,10 +818,10 @@ BOOL getVersionStatus(json_t **j_result) {
 
   json_array_append_new(*j_result, j_data);
 
-	return TRUE;
+	return true;
 }
 
-BOOL getFwCloudVersion(json_t **j_result) {
+bool getFwCloudVersion(json_t **j_result) {
 
 
   json_t *j_data;
@@ -826,13 +829,13 @@ BOOL getFwCloudVersion(json_t **j_result) {
   char *pchVersionLatest = NULL; 
 
   if (j_result == NULL) {
-    return FALSE;
+    return false;
   }
 
   j_data = json_object();
   if (j_data == NULL) {
     json_decref(*j_result); 
-    return FALSE;
+    return false;
   } 
   
   // pchVersionLatest = getStatusLatest(); // TODO 
@@ -846,7 +849,7 @@ BOOL getFwCloudVersion(json_t **j_result) {
   
   json_array_append_new(*j_result, j_data);
 
-	return TRUE;
+	return true;
 }
 
 char *addIPv6Brackets(char *pchIpAddr) {
@@ -914,7 +917,7 @@ E_IP_ADDR_TYPE getIPAddrType(char *pchIpAddress) {
 	struct in6_addr sin6_addr;
 	struct addrinfo hint, *pResult, *pResultIP;
 	int ret;
-	BOOL bHasIPv4, bHasIPv6;
+	bool bHasIPv4, bHasIPv6;
 	E_IP_ADDR_TYPE type = IP_ADDR_TYPE_NONE;
 	char *pchIpAddr 		= removeBracketsAddr(pchIpAddress);
 
@@ -930,8 +933,8 @@ E_IP_ADDR_TYPE getIPAddrType(char *pchIpAddress) {
 		return IP_ADDR_TYPE_IPV6;
 	}
 
-	bHasIPv4 = FALSE;
-	bHasIPv6 = FALSE;
+	bHasIPv4 = false;
+	bHasIPv6 = false;
 
 	pResult = NULL;
 	memset(&hint, 0, sizeof hint);
@@ -945,9 +948,9 @@ E_IP_ADDR_TYPE getIPAddrType(char *pchIpAddress) {
 
 	for (pResultIP = pResult; pResultIP != NULL; pResultIP = pResultIP->ai_next) {
 		if (pResultIP->ai_family == AF_INET) {
-			bHasIPv4 = TRUE;
+			bHasIPv4 = true;
 		} else if (pResultIP->ai_family == AF_INET6) {
-			bHasIPv6 = TRUE;
+			bHasIPv6 = true;
 		}
 	}
 

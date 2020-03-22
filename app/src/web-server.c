@@ -13,7 +13,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <ulfius.h>
-#include <defTypes.h>
+#include <standard-types.h>
 #include <web-server.h>
 #include <base64.h>
 #include <misc.h>
@@ -157,7 +157,7 @@ int main(int argc, char **argv) {
   if (status == SUCCESS) {
     
     // Wait for the user to press <enter> on the console to quit the application
-    while (TRUE) {
+    while (true) {
       sleep(WAIT_MAIN_LOOP);
     }
   } else {
@@ -203,34 +203,34 @@ void print_result(struct _h_result result) {
   }
 }
 
-static BOOL isValidComand(const char *pchQuery) {
+static bool isValidComand(const char *pchQuery) {
   
   int i;
 
   for (i = 0; i < NUMBER_WHITE_LIST_COMMANDS; i++) {
     if (o_strcasestr(pchQuery, pchWhitelist[i])) {
-      return TRUE;
+      return true;
     }
   }
 
-  return FALSE;
+  return false;
 }
 
-static BOOL validCommands(char *pchQuerys[], int lenQuerys) {
+static bool validCommands(char *pchQuerys[], int lenQuerys) {
 
   int i;
 
   if (lenQuerys == 0) {
-    return FALSE;
+    return false;
   }
 
   for (i =0; i< lenQuerys; i++) {
     if (!isValidComand(pchQuerys[i])) {
-      return FALSE;
+      return false;
     }
   }
 
-  return TRUE;
+  return true;
 }
 
 static void setQuerys(char *pchQueryList, char *pchQuerys[], int *pLenQuerys) {
@@ -302,7 +302,7 @@ int callback_redirect(const struct _u_request *request, struct _u_response* resp
   const char **ppKeys;
   int i;
 
-  pchHost = u_map_get(request->map_header, "Host");
+  pchHost = (char *)u_map_get(request->map_header, "Host");
   if (pchHost) {
     if (getIPAddrType(pchHost) == IP_ADDR_TYPE_IPV6) {
       char *pchAddr = addIPv6Brackets(pchHost);
@@ -346,12 +346,12 @@ int callback_database(const struct _u_request *request, struct _u_response *resp
 
     if (validCommands(pchQuerys, lenQuerys)) {            
       int status, i;
-      BOOL bValidresults = TRUE;
+      bool bValidresults = true;
 
       for (i = 0; i < lenQuerys; i++) {
         status = h_execute_query_json(connDB, pchQuerys[i], &pListResult[i]); 
         if (status != SUCCESS) {      
-          bValidresults = FALSE;
+          bValidresults = false;
           LOG_ERROR("Invalid command to database: %s", pchQuerys[i]);
           break;
         }     
@@ -452,7 +452,7 @@ int callback_status_register(const struct _u_request *request, struct _u_respons
   json_t *pResult;
   char *pchResponseBody;
   const char **ppKeys;
-  WORD wAccount;
+  word wAccount;
 
   AUTHENTICATE_REQUEST(request, response);
 
@@ -550,7 +550,7 @@ int callback_notify(const struct _u_request *request, struct _u_response *respon
 
   const char **ppKeys;
   const char *pchValue;
-  WORD wAccount;
+  word wAccount;
 
   AUTHENTICATE_REQUEST(request, response);
 
@@ -928,14 +928,14 @@ const char *getFilenameExt(const char *pchPath) {
   }
 }
 
-BOOL isGzip(const char *pchPath) {
+bool isGzip(const char *pchPath) {
 
   const char *pchDot = o_strstr(pchPath, ".gz");
 
   if (pchDot) {
-    return TRUE;
+    return true;
   } else {
-    return FALSE;
+    return false;
   }
 }
 
@@ -946,10 +946,10 @@ int callback_static_file(const struct _u_request *request, struct _u_response *r
   FILE *pFile = NULL;
   char *pchFilePath = msprintf(TEMPLATE_FILE_NAME_GZIP_PATH, STATIC_FOLDER, request->http_url);
   const char *pchContentType;
-  BOOL bFoundFile = FALSE;
+  bool bFoundFile = false;
 
   if (access(pchFilePath, SUCCESS) != ERROR) { // gzip text
-    bFoundFile = TRUE;
+    bFoundFile = true;
   } else { // plain text
     
     o_free(pchFilePath);
@@ -961,7 +961,7 @@ int callback_static_file(const struct _u_request *request, struct _u_response *r
         pchFilePath = msprintf(TEMPLATE_FILE_NAME_PATH, STATIC_FOLDER, INDEX_HTML);
       }
 
-      bFoundFile = TRUE;
+      bFoundFile = true;
     }
   } 
   

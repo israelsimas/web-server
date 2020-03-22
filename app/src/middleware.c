@@ -28,7 +28,7 @@ static int startMiddlewarePublish() {
 	return ERROR;
 }
 
-BOOL openMiddleware() {
+bool openMiddleware() {
 
 	LOG("openMiddleware");
 

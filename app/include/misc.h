@@ -36,9 +36,6 @@
   #define PRINT_ERROR_ASSERT_LOG(out,str,...)   printf("## %s | %s() | "str" | %d\n",THIS_FILE,__FUNCTION__,##__VA_ARGS__,__LINE__); ASSERT(0)
 #endif
 
-#define TRUE  1
-#define FALSE 0
-
 #define ERROR	  -1
 #define SUCCESS	0
 
