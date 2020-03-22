@@ -11,7 +11,6 @@
 #include <ctype.h>
 #include <base64.h>
 
-
 unsigned char *b64_decode(const char *src, size_t len) {
   return b64_decode_ex(src, len, NULL);
 }

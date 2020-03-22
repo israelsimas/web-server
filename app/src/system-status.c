@@ -169,6 +169,7 @@ bool getRegisterStatusAccount(json_t ** j_result, word wAccount) {
 }
 
 static int getEndpointStatus() {
+
   int endpointStatus = ENDPOINT_BUSY;
   int sockfd, recvLen, slen; 
   char pchBuffer[BUFFER_REG_LENGHT]; 
@@ -236,6 +237,7 @@ bool getStatusAccount(json_t ** j_result) {
 }
 
 char *getActiveInterface() {
+
   char *pchInterface = NULL;
   struct _h_result result;
 
@@ -272,9 +274,9 @@ static int getProtocolMode() {
 }
 
 static char *getIfaddr(char *pchIfName, int typeINET) {
+
 	struct ifaddrs *ifap, *ifa;
-  char addr[INET6_ADDRSTRLEN];
-  char *ret_addr;
+  char addr[INET6_ADDRSTRLEN], *ret_addr;
 
   getifaddrs (&ifap);
   for (ifa = ifap; ifa; ifa = ifa->ifa_next) {
@@ -299,9 +301,11 @@ static char *getIfaddr(char *pchIfName, int typeINET) {
 }
 
 static char *getMaskaddr(char *pchIfName, int typeINET) {
+
 	struct ifaddrs *ifap, *ifa;
-  char *pchAddr = NULL;
-  char *ret_addr;
+  char *pchAddr, *ret_addr;
+
+  pchAddr = NULL;
 
   getifaddrs (&ifap);
   for (ifa = ifap; ifa; ifa = ifa->ifa_next) {
@@ -337,9 +341,7 @@ static char *getMaskaddr(char *pchIfName, int typeINET) {
 
 static int getInterfaceType(char *pchIfName, bool isIPv6) {
 
-  char *pchQuery;
-  char *pchTable;
-  char *pchParamDHCP;
+  char *pchQuery, *pchTable, *pchParamDHCP;
   int interfaceType = 0;
   struct _h_result result;
 
@@ -429,6 +431,7 @@ char *getMac() {
 }
 
 void get_dns_servers(char **ppchDns1, char **ppchDns2, bool isIPv6) {
+
   FILE *pf;
   char line[200] , *pchDNS;
   bool bDNS1 = true;
@@ -569,8 +572,7 @@ bool getStatusSystem(json_t **j_result) {
   FILE *pf; 
   time_t seconds = time(NULL);
   struct tm tm = *localtime(&seconds);
-  char pchDate[SIZE_STR_STATUS_SYS];
-  char pchCmdRet[SIZE_STR_STATUS_SYS];
+  char pchDate[SIZE_STR_STATUS_SYS], pchCmdRet[SIZE_STR_STATUS_SYS];
 
   if (j_result == NULL) {
     return false;
@@ -641,8 +643,7 @@ bool getStatusSystem(json_t **j_result) {
 
 static char *getAccountsName() {
 
-  json_t *j_data;
-  json_t *pResult;
+  json_t *j_data, *pResult;
   char *pchAccountsName, pchField[SIZE_STR_STATUS_SYS];
   int i, account;
   word wRegisterCode;
@@ -782,6 +783,7 @@ bool getGigaSupport(json_t **j_result) {
 }
 
 void convertToUpperCase(char *pchSrc, char *pchDest) {
+
   while (*pchSrc != '\0') {
     *pchDest = toupper(*pchSrc);
     pchSrc++;
@@ -821,7 +823,6 @@ bool getVersionStatus(json_t **j_result) {
 }
 
 bool getFwCloudVersion(json_t **j_result) {
-
 
   json_t *j_data;
   FILE *pf;

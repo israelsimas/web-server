@@ -31,15 +31,15 @@
 
 #define THIS_FILE "file-process.c"
 
-FILE *pFileConfig = NULL;
-FILE *pFileLogo = NULL;
-FILE *pFilePatch = NULL;
-FILE *pFileRing = NULL;
+FILE *pFileConfig   = NULL;
+FILE *pFileLogo     = NULL;
+FILE *pFilePatch    = NULL;
+FILE *pFileRing     = NULL;
 FILE *pFileContacts = NULL;
 FILE *pFileFirmware = NULL;
 struct _h_connection *connDatabase;
 bool bValidFirmware = true;
-int statusFirmware = FIRMWARE_VALID;
+int statusFirmware  = FIRMWARE_VALID;
 char *pchVersionFirmware = NULL;
 
 void initFileProcess(struct _h_connection *connDB) {
@@ -74,8 +74,8 @@ static bool isValidFirmware(const char *data) {
     return false;
   }
 
-  pchVersionFirmware = msprintf("%d.%d.%d", pFirmHeader->major, pFirmHeader->minor, pFirmHeader->patch);
-  statusFirmware = FIRMWARE_VALID;
+  pchVersionFirmware  = msprintf("%d.%d.%d", pFirmHeader->major, pFirmHeader->minor, pFirmHeader->patch);
+  statusFirmware      = FIRMWARE_VALID;
   return true;
 }
 
@@ -178,8 +178,8 @@ void loadUploadFile(const char *data, uint64_t off, size_t size, E_UPLOAD_FILE_T
 
     char *pchRemoveCmd, *pchFileName;
 
-    pchFileName = getFileName(eType);
-    pchRemoveCmd = msprintf("rm %s", pchFileName);
+    pchFileName   = getFileName(eType);
+    pchRemoveCmd  = msprintf("rm %s", pchFileName);
     system(pchRemoveCmd);
 
     pFile = fopen(pchFileName, "w");

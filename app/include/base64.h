@@ -26,8 +26,8 @@ extern "C" {
 /**************************************************************************
  * DEFINES
  **************************************************************************/
-#define b64_malloc(ptr) malloc(ptr)
-#define b64_realloc(ptr, size) realloc(ptr, size)
+#define b64_malloc(ptr)         malloc(ptr)
+#define b64_realloc(ptr, size)  realloc(ptr, size)
 
 static const char b64_table[] = {
   'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',

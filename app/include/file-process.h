@@ -13,26 +13,30 @@
 #ifndef FILE_PROCESS_H_
 #define FILE_PROCESS_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**************************************************************************
  * DEFINITIONS
  **************************************************************************/
 
-#define UPLOAD_FILENAME_CONFIG    "/tmp/config.db"
-#define UPLOAD_FILENAME_LOGO      "/tmp/logo.bmp"
-#define UPLOAD_FILENAME_PATCH     "/data/patch_new.patch"
-#define UPLOAD_FILENAME_RING      "/tmp/ring.wav"
-#define UPLOAD_FILENAME_CONTACTS  "/tmp/contacts.xml"
-#define UPLOAD_FILENAME_FIRMWARE  "/run/firmware.bin"
+#define UPLOAD_FILENAME_CONFIG      "/tmp/config.db"
+#define UPLOAD_FILENAME_LOGO        "/tmp/logo.bmp"
+#define UPLOAD_FILENAME_PATCH       "/data/patch_new.patch"
+#define UPLOAD_FILENAME_RING        "/tmp/ring.wav"
+#define UPLOAD_FILENAME_CONTACTS    "/tmp/contacts.xml"
+#define UPLOAD_FILENAME_FIRMWARE    "/run/firmware.bin"
 
 #define FIRMWARE_UPLOAD_STATUS_FILE "/tmp/burningPercent"
 
 #define IS_FIRST_PACKET(offset) ((offset==0)?true:false)
 
-#define INVALID_RING_PK 0
+#define INVALID_RING_PK       0
 
 #define FIRMWARE_HEADER_BYTE  0x55
 
-#define SIZE_STR_PARTITION  10
+#define SIZE_STR_PARTITION    10
 
 /**************************************************************************
  * TYPEDEFS
@@ -97,5 +101,9 @@ void restartAppsSystem();
 void closeFwupdate(char **ppchMessage);
 
 bool getBurningStatus(json_t *j_result);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

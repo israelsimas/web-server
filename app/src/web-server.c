@@ -80,8 +80,8 @@ static int openMiddleware() {
 int main(int argc, char **argv) {
 
   int status, port;
-  SYSTEM_GENERAL *pSystemStatus;
   char *pchHost;
+  SYSTEM_GENERAL *pSystemStatus;
   
   // Set the framework port number
   struct _u_instance instance;
@@ -122,12 +122,12 @@ int main(int argc, char **argv) {
   struct _u_map mime_types;
   u_map_init(&mime_types);
   u_map_put(&mime_types, ".html", "text/html");
-  u_map_put(&mime_types, ".css", "text/css");
-  u_map_put(&mime_types, ".js", "application/javascript");
-  u_map_put(&mime_types, ".png", "image/png");
+  u_map_put(&mime_types, ".css",  "text/css");
+  u_map_put(&mime_types, ".js",   "application/javascript");
+  u_map_put(&mime_types, ".png",  "image/png");
   u_map_put(&mime_types, ".jpeg", "image/jpeg");
-  u_map_put(&mime_types, ".jpg", "image/jpeg");
-  u_map_put(&mime_types, "*", "application/octet-stream");  
+  u_map_put(&mime_types, ".jpg",  "image/jpeg");
+  u_map_put(&mime_types, "*",     "application/octet-stream");  
   
   // Endpoint list declaration
   ulfius_add_endpoint_by_val(&instance, "GET", DATABASE_REQUEST,  NULL, 0, &callback_database, NULL);
@@ -200,6 +200,7 @@ int main(int argc, char **argv) {
 }
 
 void print_result(struct _h_result result) {
+
   int col, row, i;
   printf("rows: %u, col: %u\n", result.nb_rows, result.nb_columns);
   for (row = 0; row<result.nb_rows; row++) {
@@ -263,11 +264,12 @@ static bool validCommands(char *pchQuerys[], int lenQuerys) {
 
 static void setQuerys(char *pchQueryList, char *pchQuerys[], int *pLenQuerys) {
 
-  char *pchToken = NULL;
+  char *pchToken, *pchList;
   int wNumQuerys = 0;
-  char *pchList = NULL;
 
   *pLenQuerys = 0;
+  pchToken  = NULL;
+  pchList   = NULL;  
 
   if (!pchQueryList) {
     return;
@@ -291,12 +293,13 @@ static void setQuerys(char *pchQueryList, char *pchQuerys[], int *pLenQuerys) {
 static char *concatResultsToString(json_t *pListResult[], int lenQuerys) {
 
   int i, lenTotal = 0;
-  char *pchresults[NUM_MAX_QUERY_COMANDS];  
-  char *pchResultJson = NULL;
+  char *pchresults[NUM_MAX_QUERY_COMANDS], *pchResultJson;  
 
   if (!lenQuerys) {
     return NULL;
   }
+
+  pchResultJson = NULL;
 
   for (i = 0; i < lenQuerys; i++) {
     pchresults[i] = json_dumps(pListResult[i], JSON_INDENT(2));
@@ -354,13 +357,13 @@ int callback_redirect(const struct _u_request *request, struct _u_response* resp
 
 int callback_database(const struct _u_request *request, struct _u_response *response, void *user_data) {
 
-  char *pchResponseBody = NULL;
+  char *pchResponseBody, *pchQuerys[NUM_MAX_QUERY_COMANDS];
   const char **ppKeys;
-  char *pchQuerys[NUM_MAX_QUERY_COMANDS];
   json_t *pListResult[NUM_MAX_QUERY_COMANDS] = { NULL };
   int lenQuerys;
 
   AUTHENTICATE_REQUEST(request, response);
+  pchResponseBody = NULL;
 
   ppKeys = u_map_enum_keys(request->map_url);
 
@@ -415,12 +418,12 @@ int callback_database(const struct _u_request *request, struct _u_response *resp
 
 int callback_status(const struct _u_request *request, struct _u_response *response, void *user_data) {
 
-  char *pchResponseBody = NULL;
   json_t *pResultAcc, *pResultNetwork, *pResultSystem;
-  char *pchResult, *pchResultAcc, *pchResultNetwork, *pchResultSystem, *result;
+  char *pchResponseBody, *pchResult, *pchResultAcc, *pchResultNetwork, *pchResultSystem, *result;
   SYSTEM_GENERAL *pSystemStatus;
 
   AUTHENTICATE_REQUEST(request, response);
+  pchResponseBody = NULL;
 
   pSystemStatus = getSystemGeneral();
 
@@ -576,8 +579,7 @@ int callback_version(const struct _u_request *request, struct _u_response *respo
 
 int callback_notify(const struct _u_request *request, struct _u_response *response, void *user_data) {
 
-  const char **ppKeys;
-  const char *pchValue;
+  const char **ppKeys, *pchValue;
   word wAccount;
 
   AUTHENTICATE_REQUEST(request, response);
@@ -607,8 +609,7 @@ int callback_autoprov_log(const struct _u_request *request, struct _u_response *
 
 int callback_date_time(const struct _u_request *request, struct _u_response *response, void *user_data) {
 
-  const char **ppKeys;
-  const char *pchValue;
+  const char **ppKeys, *pchValue;
 
   AUTHENTICATE_REQUEST(request, response);
 
@@ -645,8 +646,7 @@ int callback_self_provisioning(const struct _u_request *request, struct _u_respo
 
 int callback_change_partition(const struct _u_request *request, struct _u_response *response, void *user_data) {
 
-  const char **ppKeys;
-  const char *pchValue;
+  const char **ppKeys, *pchValue;
 
   AUTHENTICATE_REQUEST(request, response);
 
@@ -668,8 +668,7 @@ int callback_change_partition(const struct _u_request *request, struct _u_respon
 
 int callback_capture_log(const struct _u_request *request, struct _u_response *response, void *user_data) {
 
-  const char **ppKeys;
-  const char *pchValue;
+  const char **ppKeys, *pchValue;
 
   AUTHENTICATE_REQUEST(request, response);
 
@@ -1073,6 +1072,7 @@ int callback_backup(const struct _u_request *request, struct _u_response *respon
 }
 
 char * print_map(const struct _u_map * map) {
+
   char * line, * to_return = NULL;
   const char **keys, * value;
   int len, i;
@@ -1104,8 +1104,7 @@ char * print_map(const struct _u_map * map) {
 
 int callback_upload_file(const struct _u_request * request, struct _u_response * response, void * user_data) {
 
-  const char **ppKeys;
-  const char *pchValue;
+  const char **ppKeys, *pchValue;
   char *pchResponseBody = NULL;
 
   AUTHENTICATE_REQUEST(request, response);
