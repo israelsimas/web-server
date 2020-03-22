@@ -8,14 +8,9 @@
  *
  **************************************************************************/
 
-#include <string.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 #include <ulfius.h>
 #include <utils.h>
 #include <web-server.h>
-#include <base64.h>
 #include <utils.h>
 #include <database.h>
 #include <config.h>
@@ -130,35 +125,35 @@ int main(int argc, char **argv) {
   u_map_put(&mime_types, "*",     "application/octet-stream");  
   
   // Endpoint list declaration
-  ulfius_add_endpoint_by_val(&instance, "GET", DATABASE_REQUEST,  NULL, 0, &callback_database, NULL);
-  ulfius_add_endpoint_by_val(&instance, "GET", STATUS_REQUEST,    NULL, 0, &callback_status, NULL);
-  ulfius_add_endpoint_by_val(&instance, "GET", ENDPOINT_STATUS_REQUEST, NULL, 0, &callback_endpoint_status, NULL);
-  ulfius_add_endpoint_by_val(&instance, "GET", STATUS_REGISTER_REQUEST, NULL, 0, &callback_status_register, NULL);
-  ulfius_add_endpoint_by_val(&instance, "GET", STATUS_GENERAL_REQUEST, NULL, 0, &callback_status_general, NULL);
-  ulfius_add_endpoint_by_val(&instance, "GET", SUPPORT_GIGA_REQUEST, NULL, 0, &callback_support_giga, NULL);
-  ulfius_add_endpoint_by_val(&instance, "GET", VERSIO_REQUEST, NULL, 0, &callback_version, NULL);
-  ulfius_add_endpoint_by_val(&instance, "GET", NOTIFY_REQUEST, NULL, 0, &callback_notify, NULL);
-  ulfius_add_endpoint_by_val(&instance, "GET", AUTOPROV_LOG_REQUEST, NULL, 0, &callback_autoprov_log, NULL);
-  ulfius_add_endpoint_by_val(&instance, "GET", DATE_TIME_REQUEST, NULL, 0, &callback_date_time, NULL);
-  ulfius_add_endpoint_by_val(&instance, "GET", SELF_PROV_REQUEST, NULL, 0, &callback_self_provisioning, NULL);  
-  ulfius_add_endpoint_by_val(&instance, "GET", CHANGE_PARTITION_REQUEST, NULL, 0, &callback_change_partition, NULL);
-  ulfius_add_endpoint_by_val(&instance, "GET", CAPTURE_LOG_REQUEST, NULL, 0, &callback_capture_log, NULL);
-  ulfius_add_endpoint_by_val(&instance, "GET", STATUS_FW_CLOUD_REQUEST, NULL, 0, &callback_status_fw_cloud, NULL);
-  ulfius_add_endpoint_by_val(&instance, "GET", UPDATE_FW_CLOUD_REQUEST, NULL, 0, &callback_update_fw_cloud, NULL);  
-  ulfius_add_endpoint_by_val(&instance, "GET", BACKUP_REQUEST, NULL, 0, &callback_backup, NULL);
-  ulfius_add_endpoint_by_val(&instance, "GET", SAVE_FW_REQUEST, NULL, 0, &callback_save_fw, NULL); 
-  ulfius_add_endpoint_by_val(&instance, "GET", BURN_FW_REQUEST, NULL, 0, &callback_burn_fw, NULL);  
-  ulfius_add_endpoint_by_val(&instance, "GET", END_FW_REQUEST, NULL, 0, &callback_end_fw, NULL);
-  ulfius_add_endpoint_by_val(&instance, "GET", BURN_STATUS_REQUEST, NULL, 0, &callback_burn_status, NULL);
-  ulfius_add_endpoint_by_val(&instance, "GET", EXPORT_AUTOPROV_XML, NULL, 0, &callback_export_autoprov, NULL);
-  ulfius_add_endpoint_by_val(&instance, "GET", EXPORT_CONTACTS_XML, NULL, 0, &callback_export_contacts, NULL);  
-  ulfius_add_endpoint_by_val(&instance, "POST", RESTART_REQUEST, NULL, 0, &callback_restart, NULL);
-  ulfius_add_endpoint_by_val(&instance, "POST", RESTART_SYSLOG_REQUEST, NULL, 0, &callback_restart_syslog, NULL);
-  ulfius_add_endpoint_by_val(&instance, "POST", FACTORY_RESET_REQUEST, NULL, 0, &callback_factory_reset, NULL);
-  ulfius_add_endpoint_by_val(&instance, "POST", LOGO_RESET_REQUEST, NULL, 0, &callback_logo_reset, NULL);
-  ulfius_add_endpoint_by_val(&instance, "POST", SET_LANGUAGE_REQUEST, NULL, 0, &callback_set_language, NULL); 
-  ulfius_add_endpoint_by_val(&instance, "POST", UPLOAD_CONFIG_REQUEST, NULL, 1, &callback_upload_file, NULL); 
-  ulfius_add_endpoint_by_val(&instance, "GET", "*", NULL, 1, &callback_static_file, &mime_types);
+  ulfius_add_endpoint_by_val(&instance, "GET", DATABASE_REQUEST,          NULL, 0, &callback_database,          NULL);
+  ulfius_add_endpoint_by_val(&instance, "GET", STATUS_REQUEST,            NULL, 0, &callback_status,            NULL);
+  ulfius_add_endpoint_by_val(&instance, "GET", ENDPOINT_STATUS_REQUEST,   NULL, 0, &callback_endpoint_status,   NULL);
+  ulfius_add_endpoint_by_val(&instance, "GET", STATUS_REGISTER_REQUEST,   NULL, 0, &callback_status_register,   NULL);
+  ulfius_add_endpoint_by_val(&instance, "GET", STATUS_GENERAL_REQUEST,    NULL, 0, &callback_status_general,    NULL);
+  ulfius_add_endpoint_by_val(&instance, "GET",  SUPPORT_GIGA_REQUEST,     NULL, 0, &callback_support_giga,      NULL);
+  ulfius_add_endpoint_by_val(&instance, "GET",  VERSIO_REQUEST,           NULL, 0, &callback_version,           NULL);
+  ulfius_add_endpoint_by_val(&instance, "GET",  NOTIFY_REQUEST,           NULL, 0, &callback_notify,            NULL);
+  ulfius_add_endpoint_by_val(&instance, "GET",  AUTOPROV_LOG_REQUEST,     NULL, 0, &callback_autoprov_log,      NULL);
+  ulfius_add_endpoint_by_val(&instance, "GET",  DATE_TIME_REQUEST,        NULL, 0, &callback_date_time,         NULL);
+  ulfius_add_endpoint_by_val(&instance, "GET",  SELF_PROV_REQUEST,        NULL, 0, &callback_self_provisioning, NULL);  
+  ulfius_add_endpoint_by_val(&instance, "GET",  CHANGE_PARTITION_REQUEST, NULL, 0, &callback_change_partition,  NULL);
+  ulfius_add_endpoint_by_val(&instance, "GET",  CAPTURE_LOG_REQUEST,      NULL, 0, &callback_capture_log,       NULL);
+  ulfius_add_endpoint_by_val(&instance, "GET",  STATUS_FW_CLOUD_REQUEST,  NULL, 0, &callback_status_fw_cloud,   NULL);
+  ulfius_add_endpoint_by_val(&instance, "GET",  UPDATE_FW_CLOUD_REQUEST,  NULL, 0, &callback_update_fw_cloud,   NULL);  
+  ulfius_add_endpoint_by_val(&instance, "GET",  BACKUP_REQUEST,           NULL, 0, &callback_backup,            NULL);
+  ulfius_add_endpoint_by_val(&instance, "GET",  SAVE_FW_REQUEST,          NULL, 0, &callback_save_fw,           NULL); 
+  ulfius_add_endpoint_by_val(&instance, "GET",  BURN_FW_REQUEST,          NULL, 0, &callback_burn_fw,           NULL);  
+  ulfius_add_endpoint_by_val(&instance, "GET",  END_FW_REQUEST,           NULL, 0, &callback_end_fw,            NULL);
+  ulfius_add_endpoint_by_val(&instance, "GET",  BURN_STATUS_REQUEST,      NULL, 0, &callback_burn_status,       NULL);
+  ulfius_add_endpoint_by_val(&instance, "GET",  EXPORT_AUTOPROV_XML,      NULL, 0, &callback_export_autoprov,   NULL);
+  ulfius_add_endpoint_by_val(&instance, "GET",  EXPORT_CONTACTS_XML,      NULL, 0, &callback_export_contacts,   NULL);  
+  ulfius_add_endpoint_by_val(&instance, "POST", RESTART_REQUEST,          NULL, 0, &callback_restart,           NULL);
+  ulfius_add_endpoint_by_val(&instance, "POST", RESTART_SYSLOG_REQUEST,   NULL, 0, &callback_restart_syslog,    NULL);
+  ulfius_add_endpoint_by_val(&instance, "POST", FACTORY_RESET_REQUEST,    NULL, 0, &callback_factory_reset,     NULL);
+  ulfius_add_endpoint_by_val(&instance, "POST", LOGO_RESET_REQUEST,       NULL, 0, &callback_logo_reset,        NULL);
+  ulfius_add_endpoint_by_val(&instance, "POST", SET_LANGUAGE_REQUEST,     NULL, 0, &callback_set_language,      NULL); 
+  ulfius_add_endpoint_by_val(&instance, "POST", UPLOAD_CONFIG_REQUEST,    NULL, 1, &callback_upload_file,       NULL); 
+  ulfius_add_endpoint_by_val(&instance, "GET",  "*",                      NULL, 1, &callback_static_file, &mime_types);
 
   // HTTP request to redirect
   ulfius_add_endpoint_by_val(&instanceHTTP, "GET", NULL, "*", 0, &callback_redirect, NULL);  
@@ -202,19 +197,27 @@ int main(int argc, char **argv) {
 void print_result(struct _db_result result) {
 
   int col, row, i;
+  
   printf("rows: %u, col: %u\n", result.nb_rows, result.nb_columns);
+
   for (row = 0; row<result.nb_rows; row++) {
+  
     for (col=0; col<result.nb_columns; col++) {
+  
       switch(result.data[row][col].type) {
+  
         case DATABASE_COL_TYPE_INT:
           printf("| %d ", ((struct _db_type_int *)result.data[row][col].t_data)->value);
           break;
+  
         case DATABASE_COL_TYPE_DOUBLE:
           printf("| %f ", ((struct _db_type_double *)result.data[row][col].t_data)->value);
           break;
+  
         case DATABASE_COL_TYPE_TEXT:
           printf("| %s ", ((struct _db_type_text *)result.data[row][col].t_data)->value);
           break;
+  
         case DATABASE_COL_TYPE_BLOB:
           for (i=0; i<((struct _db_type_blob *)result.data[row][col].t_data)->length; i++) {
             printf("%c", *((char*)(((struct _db_type_blob *)result.data[row][col].t_data)->value+i)));
@@ -223,6 +226,7 @@ void print_result(struct _db_result result) {
             }
           }
           break;
+
         case DATABASE_COL_TYPE_NULL:
           printf("| null ");
           break;
