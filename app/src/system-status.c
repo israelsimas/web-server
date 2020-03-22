@@ -9,11 +9,10 @@
  **************************************************************************/
 
 #include <base64.h>
-#include <misc.h>
 #include <hoel.h>
 #include <config.h>
 #include <jansson.h>
-#include <misc.h>
+#include <utils.h>
 #include <system-status.h>
 #include <ifaddrs.h>
 #include <unistd.h>
@@ -111,7 +110,7 @@ static void getRegisterStatus(word wAccount, word *wRegisterCode, bool *bRegiste
   sprintf(pchAccount, "%d", wAccount);
 
   if ( (sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0 ) { 
-    LOG_ERROR("socket creation failed"); 
+    log_error("socket creation failed"); 
     return; 
   } 
 
@@ -176,7 +175,7 @@ static int getEndpointStatus() {
   struct sockaddr_in servaddr; 
 
   if ( (sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0 ) { 
-    LOG_ERROR("socket creation failed"); 
+    log_error("socket creation failed"); 
     return endpointStatus;
   } 
 

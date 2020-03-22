@@ -22,13 +22,12 @@
  */
 #include "hoel.h"
 #include "h-private.h"
-#include <misc.h>
+#include <utils.h>
 
 #ifdef _HOEL_SQLITE
 
 #include <sqlite3.h>
 #include <string.h>
-#include <misc.h>
 
 #define THIS_FILE "hoel-sqlite.c"
 
@@ -49,20 +48,20 @@ struct _h_connection * h_connect_sqlite(const char * db_path) {
   if (db_path != NULL) {
     conn = malloc(sizeof(struct _h_connection));
     if (conn == NULL) {
-      LOG_ERROR("h_connect_sqlite - Error allocating resources");
+      log_error("h_connect_sqlite - Error allocating resources");
       return NULL;
     }
     
     conn->type = HOEL_DB_TYPE_SQLITE;
     conn->connection = malloc(sizeof(struct _h_sqlite));
     if (conn->connection == NULL) {
-      LOG_ERROR("h_connect_sqlite - Error allocating resources");
+      log_error("h_connect_sqlite - Error allocating resources");
       free(conn);
       return NULL;
     }
     if (sqlite3_open_v2(db_path, &((struct _h_sqlite *)conn->connection)->db_handle, SQLITE_OPEN_READWRITE, NULL) != SQLITE_OK) {
-      LOG_ERROR("Error connecting to sqlite3 database, path: %s", db_path);
-      LOG_ERROR("Error code: %d, message: \"%s\"", 
+      log_error("Error connecting to sqlite3 database, path: %s", db_path);
+      log_error("Error code: %d, message: \"%s\"", 
                              sqlite3_errcode(((struct _h_sqlite *)conn->connection)->db_handle), 
                              sqlite3_errmsg(((struct _h_sqlite *)conn->connection)->db_handle));
       sqlite3_close(((struct _h_sqlite *)conn->connection)->db_handle);
@@ -89,8 +88,8 @@ void h_close_sqlite(struct _h_connection * conn) {
 char * h_escape_string_sqlite(const struct _h_connection * conn, const char * unsafe) {
   char * tmp = sqlite3_mprintf("%q", unsafe), * ret;
   if (tmp == NULL) {
-    LOG_ERROR("Error escaping string: %s", unsafe);
-    LOG_ERROR("Error code: %d, message: \"%s\"", 
+    log_error("Error escaping string: %s", unsafe);
+    log_error("Error code: %d, message: \"%s\"", 
                            sqlite3_errcode(((struct _h_sqlite *)conn->connection)->db_handle), 
                            sqlite3_errmsg(((struct _h_sqlite *)conn->connection)->db_handle));
     return NULL;
@@ -98,7 +97,7 @@ char * h_escape_string_sqlite(const struct _h_connection * conn, const char * un
   ret = o_strdup(tmp);
   sqlite3_free(tmp);
   if (ret == NULL) {
-    LOG_ERROR("Error escaping (o_strdup)");
+    log_error("Error escaping (o_strdup)");
   }
   return ret;
 }
@@ -181,11 +180,11 @@ int h_select_query_sqlite(const struct _h_connection * conn, const char * query,
     sqlite3_finalize(stmt);
     return H_OK;
   } else {
-    LOG_ERROR("Error executing sql query");
-    LOG_ERROR("Error code: %d, message: \"%s\"", 
+    log_error("Error executing sql query");
+    log_error("Error code: %d, message: \"%s\"", 
                                    sqlite3_errcode(((struct _h_sqlite *)conn->connection)->db_handle), 
                                    sqlite3_errmsg(((struct _h_sqlite *)conn->connection)->db_handle));
-    LOG_ERROR("Query: \"%s\"", query);
+    log_error("Query: \"%s\"", query);
     sqlite3_finalize(stmt);
     return H_ERROR_QUERY;
   }
@@ -203,9 +202,9 @@ int h_exec_query_sqlite(const struct _h_connection * conn, const char * query) {
   if (sqlite3_exec(((struct _h_sqlite *)conn->connection)->db_handle, query, NULL, NULL, NULL) == SQLITE_OK) {
     return H_OK;
   } else {
-    LOG_ERROR("Error executing sql query");
-    LOG_ERROR("Error code: %d, message: \"%s\"", sqlite3_errcode(((struct _h_sqlite *)conn->connection)->db_handle), sqlite3_errmsg(((struct _h_sqlite *)conn->connection)->db_handle));
-    LOG_ERROR("Query: \"%s\"", query);
+    log_error("Error executing sql query");
+    log_error("Error code: %d, message: \"%s\"", sqlite3_errcode(((struct _h_sqlite *)conn->connection)->db_handle), sqlite3_errmsg(((struct _h_sqlite *)conn->connection)->db_handle));
+    log_error("Query: \"%s\"", query);
 
     return H_ERROR_QUERY;
   }
@@ -234,7 +233,7 @@ int h_execute_query_json_sqlite(const struct _h_connection * conn, const char * 
     /* Filling j_result with results in json format */
     *j_result = json_array();
     if (*j_result == NULL) {
-      LOG_ERROR("Hoel - Error allocating memory for *j_result");
+      log_error("Hoel - Error allocating memory for *j_result");
       sqlite3_finalize(stmt);
       return H_ERROR_MEMORY;
     }
@@ -242,7 +241,7 @@ int h_execute_query_json_sqlite(const struct _h_connection * conn, const char * 
     while (row_result == SQLITE_ROW) {
       j_data = json_object();
       if (j_data == NULL) {
-        LOG_ERROR("Hoel - Error allocating memory for j_data");
+        log_error("Hoel - Error allocating memory for j_data");
         json_decref(*j_result);
         return H_ERROR_MEMORY;
       }
@@ -273,11 +272,11 @@ int h_execute_query_json_sqlite(const struct _h_connection * conn, const char * 
     sqlite3_finalize(stmt);
     return H_OK;
   } else {
-    LOG_ERROR("Error executing sql query");
-    LOG_ERROR("Error code: %d, message: \"%s\"", 
+    log_error("Error executing sql query");
+    log_error("Error code: %d, message: \"%s\"", 
                                    sqlite3_errcode(((struct _h_sqlite *)conn->connection)->db_handle), 
                                    sqlite3_errmsg(((struct _h_sqlite *)conn->connection)->db_handle));
-    LOG_ERROR("Query: \"%s\"", query);
+    log_error("Query: \"%s\"", query);
     sqlite3_finalize(stmt);
     return H_ERROR_QUERY;
   }
@@ -289,13 +288,13 @@ int h_execute_query_json_sqlite(const struct _h_connection * conn, const char * 
  */
 struct _h_connection * h_connect_sqlite(const char * db_path) {
   UNUSED(db_path);
-  LOG_ERROR("Hoel was not compiled with SQLite backend");
+  log_error("Hoel was not compiled with SQLite backend");
   return NULL;
 }
 
 void h_close_sqlite(struct _h_connection * conn) {
   UNUSED(conn);
-  LOG_ERROR("Hoel was not compiled with SQLite backend");
+  log_error("Hoel was not compiled with SQLite backend");
 }
 
 #endif

@@ -12,7 +12,7 @@
 #include <hoel.h>
 #include <config.h>
 #include <jansson.h>
-#include <misc.h>
+#include <utils.h>
 #include <system-status.h>
 #include <system-request.h>
 #include <ifaddrs.h>
@@ -21,8 +21,6 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <time.h>
-#include <string.h>
-#include <stdio.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/un.h>
@@ -31,11 +29,13 @@
 
 #define THIS_FILE "system-request.c"
 
+extern middleware_conn conn;
+
 void restartSystem() {
 
   int status = system("sync && sleep 3 && reboot");
   if (WEXITSTATUS(status) != SUCCESS) {
-    LOG_ERROR("Error to execute command");
+    log_error("Error to execute command");
   }
 }
 
@@ -43,7 +43,7 @@ void restartSyslog() {
   
   int status = system("/etc/init.d/S60syslog restart");
   if (WEXITSTATUS(status) != SUCCESS) {
-    LOG_ERROR("Error to execute command");
+    log_error("Error to execute command");
   }  
 }
 
@@ -75,11 +75,11 @@ void setLanguage() {
 }
 
 void notifyTables(const char *pchTables) {
-  sendMiddlewareMessage(pchTables);
+  middleware_publish(conn, "status/database", pchTables);
 }
 
 void generalNotify(const char *pchTables) {
-  sendMiddlewareMessage(pchTables);
+  middleware_publish(conn, "status/database", pchTables);
 }
 
 void setNTPDateTime() {

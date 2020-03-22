@@ -13,10 +13,10 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <ulfius.h>
-#include <standard-types.h>
+#include <utils.h>
 #include <web-server.h>
 #include <base64.h>
-#include <misc.h>
+#include <utils.h>
 #include <hoel.h>
 #include <config.h>
 #include <jansson.h>
@@ -29,6 +29,7 @@
 
 struct _h_connection *connDB;
 char *pchWhitelist[NUMBER_WHITE_LIST_COMMANDS] = {"select", "update", "insert", "delete", "begin transaction", "end transaction", "commit"};
+middleware_conn conn = NULL;
 
 char *readFile(const char *pchFilename) {
 
@@ -72,19 +73,23 @@ int main(int argc, char **argv) {
 
   connDB = h_connect_sqlite(DATABASE_PATH);
   if (!connDB) {
-    LOG_ERROR("Database unreacheable");
+    log_error("Database unreacheable");
     return(1);
   }
 
   initSystemGeneral(connDB);
   initFileProcess(connDB);
 
-  openMiddleware();
+  conn = middleware_open(WEB_SERVER_ID, MIDDLEWARE_HOST, MIDDLEWARE_PORT, NULL);
+  if (!conn) {
+    log_error("Invalid connection middleware");
+    return(1);
+  }
   
   u_map_put(instance.default_headers, "Access-Control-Allow-Origin", "*");
   
   if (ulfius_set_upload_file_callback_function(&instance, &file_upload_callback, "my cls") != U_OK) {
-    LOG_ERROR("Error ulfius_set_upload_file_callback_function");
+    log_error("Error ulfius_set_upload_file_callback_function");
   }
 
   // Maximum body size sent by the client is 1 Kb
@@ -161,7 +166,7 @@ int main(int argc, char **argv) {
       sleep(WAIT_MAIN_LOOP);
     }
   } else {
-    LOG_ERROR("Error starting framework");
+    log_error("Error starting framework");
   }
    
   ulfius_stop_framework(&instance);
@@ -352,7 +357,7 @@ int callback_database(const struct _u_request *request, struct _u_response *resp
         status = h_execute_query_json(connDB, pchQuerys[i], &pListResult[i]); 
         if (status != SUCCESS) {      
           bValidresults = false;
-          LOG_ERROR("Invalid command to database: %s", pchQuerys[i]);
+          log_error("Invalid command to database: %s", pchQuerys[i]);
           break;
         }     
       }
@@ -362,7 +367,7 @@ int callback_database(const struct _u_request *request, struct _u_response *resp
       }
       
     } else {
-      LOG_ERROR("Invalid commands to database");
+      log_error("Invalid commands to database");
     }
 
     if (lenQuerys > 0) {
@@ -1113,7 +1118,7 @@ int callback_upload_file(const struct _u_request * request, struct _u_response *
       closeUploadFile(UPLOAD_FILE_FIRMWARE);
 
     } else {
-      LOG_ERROR("Invalid file");
+      log_error("Invalid file");
     }
   }
 
@@ -1150,7 +1155,7 @@ int file_upload_callback (const struct _u_request * request,
     } else if (o_strstr(request->http_url, "loadFirmware")) {
       loadUploadFile(data, off, size, UPLOAD_FILE_FIRMWARE);
     } else {
-      LOG_ERROR("Invalid file");
+      log_error("Invalid file");
     }
   }
 

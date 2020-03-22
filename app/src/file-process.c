@@ -9,11 +9,10 @@
  **************************************************************************/
 
 #include <base64.h>
-#include <misc.h>
 #include <hoel.h>
 #include <config.h>
 #include <jansson.h>
-#include <misc.h>
+#include <utils.h>
 #include <system-status.h>
 #include <system-request.h>
 #include <ifaddrs.h>
@@ -103,7 +102,7 @@ static char *getFileName(E_UPLOAD_FILE_TYPE eType) {
       return UPLOAD_FILENAME_FIRMWARE;
 
     default:
-      LOG_ERROR("Invalid file type to upload");
+      log_error("Invalid file type to upload");
       return NULL;
   }
 }
@@ -137,7 +136,7 @@ static void updateFileUpload(E_UPLOAD_FILE_TYPE eType, FILE *pFile) {
       break;
 
     default:
-      LOG_ERROR("Invalid file type to upload");
+      log_error("Invalid file type to upload");
       return;
       break;
   } 
@@ -166,7 +165,7 @@ static FILE *getFileUpload(E_UPLOAD_FILE_TYPE eType) {
       return pFileFirmware;
 
     default:
-      LOG_ERROR("Invalid file type to upload");
+      log_error("Invalid file type to upload");
       return NULL;
   }  
 }
@@ -244,7 +243,7 @@ void closeUploadFile(E_UPLOAD_FILE_TYPE eType) {
       break;
 
     default:
-      LOG_ERROR("Invalid file type to upload");
+      log_error("Invalid file type to upload");
       break;
   }
 }
@@ -399,12 +398,12 @@ void stopAppsSystem() {
   system("/etc/rc5.d/S95control-call lock && killall control-call");
   system("/etc/rc5.d/S91dspg_apps stop");
   system("/etc/rc5.d/S93handset lock && killall handset");
-  system("/etc/rc5.d/S87middleware-zeromq stop");
+  system("/etc/rc5.d/S87middleware stop");
   system("echo \"-1\" > /tmp/burningPercent");
 }
 
 void restartAppsSystem() {
-  system("/etc/rc5.d/S87middleware-zeromq restart");
+  system("/etc/rc5.d/S87middleware restart");
   system("/etc/rc5.d/S91dspg_apps start");
   system("/etc/rc5.d/S93handset unlock");
   system("/etc/rc5.d/S95control-call unlock");

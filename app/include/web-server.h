@@ -26,69 +26,74 @@ extern "C" {
  * DEFINITIONS
  **************************************************************************/
 
-#define DATABASE_PATH   "/data/database.sql"
+#define DATABASE_PATH             "/data/database.sql"
 
-#define POST_SIZE_MAX   1024
-#define WAIT_MAIN_LOOP  10
+#define POST_SIZE_MAX             1024
+#define WAIT_MAIN_LOOP            10
 
 #ifdef __APPLE__
-  #define PORT_HTTP_DEFAULT 8080
-  #define PORT_DEFAULT      8443
-  #define SECURE_CONNECTION 0
+  #define PORT_HTTP_DEFAULT       8080
+  #define PORT_DEFAULT            8443
+  #define SECURE_CONNECTION       0
 #else
-  #define PORT_HTTP_DEFAULT 80
-  #define PORT_DEFAULT      443
-  #define SECURE_CONNECTION 1
+  #define PORT_HTTP_DEFAULT       80
+  #define PORT_DEFAULT            443
+  #define SECURE_CONNECTION       1
 #endif
 
-#define CERTIFICATE_KEY "/etc/certificates/cert.key"
-#define CERTIFICATE_PEM "/etc/certificates/cert.pem"
+#define CERTIFICATE_KEY           "/etc/certificates/cert.key"
+#define CERTIFICATE_PEM           "/etc/certificates/cert.pem"
 
-#define STATIC_FOLDER   "/var/www"
-#define INDEX_HTML      "/index.html"
+#define STATIC_FOLDER             "/var/www"
+#define INDEX_HTML                "/index.html"
 
 #define TEMPLATE_FILE_NAME_GZIP_PATH   "%s%s.gz"
 #define TEMPLATE_FILE_NAME_PATH   "%s%s"
 
-#define FILE_PREFIX "/upload"
+#define FILE_PREFIX               "/upload"
 
-#define DATABASE_REQUEST  "/db.cgi"
-#define STATUS_REQUEST    "/status.cgi"
-#define ENDPOINT_STATUS_REQUEST "/endpoint_status.cgi"
-#define STATUS_REGISTER_REQUEST "/statusRegister.cgi"
-#define STATUS_GENERAL_REQUEST  "/status_general.cgi"
-#define SUPPORT_GIGA_REQUEST    "/support_giga.cgi"
-#define VERSIO_REQUEST          "/version.cgi"
-#define RESTART_REQUEST         "/restart.cgi"
-#define RESTART_SYSLOG_REQUEST  "/restart_syslog.cgi"
-#define FACTORY_RESET_REQUEST   "/factoryReset.cgi"
-#define LOGO_RESET_REQUEST      "/logoReset.cgi"
-#define SET_LANGUAGE_REQUEST    "/setLanguage.cgi"
-#define NOTIFY_REQUEST          "/notify.cgi"
-#define AUTOPROV_LOG_REQUEST    "/autoprov.log"
-#define DATE_TIME_REQUEST       "/setDatetime.cgi"
-#define SELF_PROV_REQUEST       "/setSelfProvision.cgi"
+#define DATABASE_REQUEST          "/db.cgi"
+#define STATUS_REQUEST            "/status.cgi"
+#define ENDPOINT_STATUS_REQUEST   "/endpoint_status.cgi"
+#define STATUS_REGISTER_REQUEST   "/statusRegister.cgi"
+#define STATUS_GENERAL_REQUEST    "/status_general.cgi"
+#define SUPPORT_GIGA_REQUEST      "/support_giga.cgi"
+#define VERSIO_REQUEST            "/version.cgi"
+#define RESTART_REQUEST           "/restart.cgi"
+#define RESTART_SYSLOG_REQUEST    "/restart_syslog.cgi"
+#define FACTORY_RESET_REQUEST     "/factoryReset.cgi"
+#define LOGO_RESET_REQUEST        "/logoReset.cgi"
+#define SET_LANGUAGE_REQUEST      "/setLanguage.cgi"
+#define NOTIFY_REQUEST            "/notify.cgi"
+#define AUTOPROV_LOG_REQUEST      "/autoprov.log"
+#define DATE_TIME_REQUEST         "/setDatetime.cgi"
+#define SELF_PROV_REQUEST         "/setSelfProvision.cgi"
 #define CHANGE_PARTITION_REQUEST  "/changeBootPartition.cgi"
-#define CAPTURE_LOG_REQUEST     "/captureLog.cgi"
-#define STATUS_FW_CLOUD_REQUEST "/statusFwCloud.cgi"
-#define UPDATE_FW_CLOUD_REQUEST "/updateFwCloud.cgi"
-#define BACKUP_REQUEST          "/backup.cgi"
-#define UPLOAD_CONFIG_REQUEST   "/upload_file.cgi"
-#define SAVE_FW_REQUEST         "/saveFirmware.cgi"
-#define BURN_FW_REQUEST         "/burn_firmware.cgi"
-#define END_FW_REQUEST          "/end_burnfirmware.cgi"
-#define BURN_STATUS_REQUEST     "/burn_status.cgi"
-#define EXPORT_AUTOPROV_XML     "/export_autoprovisioning.cgi"
-#define EXPORT_CONTACTS_XML     "/export_contacts.cgi"
+#define CAPTURE_LOG_REQUEST       "/captureLog.cgi"
+#define STATUS_FW_CLOUD_REQUEST   "/statusFwCloud.cgi"
+#define UPDATE_FW_CLOUD_REQUEST   "/updateFwCloud.cgi"
+#define BACKUP_REQUEST            "/backup.cgi"
+#define UPLOAD_CONFIG_REQUEST     "/upload_file.cgi"
+#define SAVE_FW_REQUEST           "/saveFirmware.cgi"
+#define BURN_FW_REQUEST           "/burn_firmware.cgi"
+#define END_FW_REQUEST            "/end_burnfirmware.cgi"
+#define BURN_STATUS_REQUEST       "/burn_status.cgi"
+#define EXPORT_AUTOPROV_XML       "/export_autoprovisioning.cgi"
+#define EXPORT_CONTACTS_XML       "/export_contacts.cgi"
 
-#define CONFIG_FILE             "/data/config.db"
+#define CONFIG_FILE               "/data/config.db"
 
-#define NOT_FOUND_MESSAGE "Page not found, do what you want"
+#define NOT_FOUND_MESSAGE         "Page not found, do what you want"
 
 #define NUM_MAX_QUERY_COMANDS       10
 #define NUMBER_WHITE_LIST_COMMANDS  7
 
-#define HEADER_JSON_DB  100
+#define HEADER_JSON_DB            100
+
+#define WEB_SERVER_ID             "webserver_id"
+#define MIDDLEWARE_PORT		        1883
+#define MIDDLEWARE_HOST		        "127.0.0.1"
+#define MIDDLEWARE_TOPIC          "status/network"
 
 /**************************************************************************
  * TYPEDEFS
