@@ -90,6 +90,8 @@ int main(int argc, char **argv) {
     return(1);
   }  
 
+  u_log_open(LOG_NAME_WEBSERVER, LOG_FACILITY_WEBSERVER);
+
   connDB = db_connect_sqlite(DATABASE_PATH);
   if (!connDB) {
     log_error("Database unreacheable");
@@ -98,7 +100,6 @@ int main(int argc, char **argv) {
 
   initSystemGeneral(connDB);
   initFileProcess(connDB);
-  u_log_open(LOG_NAME_WEBSERVER, LOG_FACILITY_WEBSERVER);
 
   if (openMiddleware()) {
     log_error("Invalid open middleware");
