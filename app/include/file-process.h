@@ -74,7 +74,7 @@ typedef enum {
  * INTERNAL FUNCTIONS
  **************************************************************************/
 
-void initFileProcess(struct _h_connection *connDB);
+void initFileProcess(struct _db_connection *connDB);
 
 void loadUploadFile(const char *data, uint64_t off, size_t size, E_UPLOAD_FILE_TYPE eType);
 

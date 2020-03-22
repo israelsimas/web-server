@@ -17,7 +17,7 @@
 #include <web-server.h>
 #include <base64.h>
 #include <utils.h>
-#include <hoel.h>
+#include <database.h>
 #include <config.h>
 #include <jansson.h>
 #include <system-status.h>
@@ -28,7 +28,7 @@
 
 #define THIS_FILE "web-server.c"
 
-struct _h_connection *connDB;
+struct _db_connection *connDB;
 char *pchWhitelist[NUMBER_WHITE_LIST_COMMANDS] = {"select", "update", "insert", "delete", "begin transaction", "end transaction", "commit"};
 middleware_conn conn = NULL;
 
@@ -95,7 +95,7 @@ int main(int argc, char **argv) {
     return(1);
   }  
 
-  connDB = h_connect_sqlite(DATABASE_PATH);
+  connDB = db_connect_sqlite(DATABASE_PATH);
   if (!connDB) {
     log_error("Database unreacheable");
     return(1);
@@ -194,36 +194,36 @@ int main(int argc, char **argv) {
    
   ulfius_stop_framework(&instance);
   ulfius_clean_instance(&instance);
-  h_close_db(connDB);
+  db_close_connection(connDB);
   
   return 0;
 }
 
-void print_result(struct _h_result result) {
+void print_result(struct _db_result result) {
 
   int col, row, i;
   printf("rows: %u, col: %u\n", result.nb_rows, result.nb_columns);
   for (row = 0; row<result.nb_rows; row++) {
     for (col=0; col<result.nb_columns; col++) {
       switch(result.data[row][col].type) {
-        case HOEL_COL_TYPE_INT:
-          printf("| %d ", ((struct _h_type_int *)result.data[row][col].t_data)->value);
+        case DATABASE_COL_TYPE_INT:
+          printf("| %d ", ((struct _db_type_int *)result.data[row][col].t_data)->value);
           break;
-        case HOEL_COL_TYPE_DOUBLE:
-          printf("| %f ", ((struct _h_type_double *)result.data[row][col].t_data)->value);
+        case DATABASE_COL_TYPE_DOUBLE:
+          printf("| %f ", ((struct _db_type_double *)result.data[row][col].t_data)->value);
           break;
-        case HOEL_COL_TYPE_TEXT:
-          printf("| %s ", ((struct _h_type_text *)result.data[row][col].t_data)->value);
+        case DATABASE_COL_TYPE_TEXT:
+          printf("| %s ", ((struct _db_type_text *)result.data[row][col].t_data)->value);
           break;
-        case HOEL_COL_TYPE_BLOB:
-          for (i=0; i<((struct _h_type_blob *)result.data[row][col].t_data)->length; i++) {
-            printf("%c", *((char*)(((struct _h_type_blob *)result.data[row][col].t_data)->value+i)));
+        case DATABASE_COL_TYPE_BLOB:
+          for (i=0; i<((struct _db_type_blob *)result.data[row][col].t_data)->length; i++) {
+            printf("%c", *((char*)(((struct _db_type_blob *)result.data[row][col].t_data)->value+i)));
             if (i%80 == 0 && i>0) {
               printf("\n");
             }
           }
           break;
-        case HOEL_COL_TYPE_NULL:
+        case DATABASE_COL_TYPE_NULL:
           printf("| null ");
           break;
       }
@@ -380,7 +380,7 @@ int callback_database(const struct _u_request *request, struct _u_response *resp
       bool bValidresults = true;
 
       for (i = 0; i < lenQuerys; i++) {
-        status = h_execute_query_json(connDB, pchQuerys[i], &pListResult[i]); 
+        status = db_execute_query_json(connDB, pchQuerys[i], &pListResult[i]); 
         if (status != SUCCESS) {      
           bValidresults = false;
           log_error("Invalid command to database: %s", pchQuerys[i]);

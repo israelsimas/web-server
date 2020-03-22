@@ -9,7 +9,7 @@
  **************************************************************************/
 
 #include <base64.h>
-#include <hoel.h>
+#include <database.h>
 #include <config.h>
 #include <jansson.h>
 #include <utils.h>
@@ -37,12 +37,12 @@ FILE *pFilePatch    = NULL;
 FILE *pFileRing     = NULL;
 FILE *pFileContacts = NULL;
 FILE *pFileFirmware = NULL;
-struct _h_connection *connDatabase;
+struct _db_connection *connDatabase;
 bool bValidFirmware = true;
 int statusFirmware  = FIRMWARE_VALID;
 char *pchVersionFirmware = NULL;
 
-void initFileProcess(struct _h_connection *connDB) {
+void initFileProcess(struct _db_connection *connDB) {
   connDatabase = connDB;
 }
 
@@ -256,7 +256,7 @@ void updateConfig() {
     system("rm /data/database.sql && sync");
     system("openssl enc -aes-256-cbc -d -in /tmp/config.db -out /data/database.sql -k SIRIUS_INTELBRAS");
     pchQuery = msprintf("UPDATE TAB_NET_ETH_WAN SET ETHMAC = '%s'", pchMac);
-    h_query_update(connDatabase, pchQuery);
+    db_query_update(connDatabase, pchQuery);
     o_free(pchQuery);
 
     system("sync && reboot &");
@@ -273,7 +273,7 @@ static bool addRing(const char *pchRingName) {
     return false;
   }
 
-  if (h_query_insert(connDatabase, pchQuery) == H_OK) {
+  if (db_query_insert(connDatabase, pchQuery) == DATABASE_OK) {
     return true;
   } else {
     return false;
@@ -282,12 +282,12 @@ static bool addRing(const char *pchRingName) {
 
 static int getPkFromLastInsertedRing() {
 
-  struct _h_result result;
+  struct _db_result result;
 
-  if (h_query_select(connDatabase, "SELECT MAX(PK) as PK FROM TAB_SYSTEM_RING", &result) == H_OK) {
+  if (db_query_select(connDatabase, "SELECT MAX(PK) as PK FROM TAB_SYSTEM_RING", &result) == DATABASE_OK) {
     if (result.nb_rows == 1) {
 
-      int pk = ((struct _h_type_int *)result.data[0][0].t_data)->value;
+      int pk = ((struct _db_type_int *)result.data[0][0].t_data)->value;
       return pk;
     }
   }

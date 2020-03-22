@@ -9,7 +9,7 @@
  **************************************************************************/
 
 #include <base64.h>
-#include <hoel.h>
+#include <database.h>
 #include <config.h>
 #include <jansson.h>
 #include <utils.h>

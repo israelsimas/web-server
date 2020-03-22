@@ -9,7 +9,7 @@
  **************************************************************************/
 
 #include <base64.h>
-#include <hoel.h>
+#include <database.h>
 #include <config.h>
 #include <jansson.h>
 #include <utils.h>
@@ -37,12 +37,12 @@
 #define THIS_FILE "system-status.c"
 
 SYSTEM_GENERAL systemGeneral;
-struct _h_connection *pConnDB;
+struct _db_connection *pConnDB;
 
 static void loadSystemGeneral(SYSTEM_GENERAL *pSystemGeneral) {
 
   char *pchToken, pchVersion[10];
-  struct _h_result result;
+  struct _db_result result;
 
 	iniparser_get_config(CFG_ACCOUNTS_NUMBER, &pSystemGeneral->accountNumber, TYPE_WORD);
 	iniparser_get_config(CFG_PRODUCT, &pSystemGeneral->pchProduct, TYPE_STRING);
@@ -62,15 +62,15 @@ static void loadSystemGeneral(SYSTEM_GENERAL *pSystemGeneral) {
   pSystemGeneral->loginTime    = time(NULL); 
   pSystemGeneral->pchAdminUser = o_strdup("admin");
 
-  if (h_query_select(pConnDB, "SELECT SECPassword FROM TAB_SECURITY_ACCOUNT where SECAccount='admin'", &result) == H_OK) {
-    pSystemGeneral->pchAdminPwd  = o_strdup(((struct _h_type_text *)result.data[0][0].t_data)->value);
+  if (db_query_select(pConnDB, "SELECT SECPassword FROM TAB_SECURITY_ACCOUNT where SECAccount='admin'", &result) == DATABASE_OK) {
+    pSystemGeneral->pchAdminPwd  = o_strdup(((struct _db_type_text *)result.data[0][0].t_data)->value);
   } else {
     pSystemGeneral->pchAdminPwd = o_strdup("admin");
   } 
 
 }
 
-void initSystemGeneral(struct _h_connection *pConn) {
+void initSystemGeneral(struct _db_connection *pConn) {
   pConnDB = pConn;
   memset(&systemGeneral, 0, sizeof(SYSTEM_GENERAL));
   iniparser_open();
@@ -239,15 +239,15 @@ bool getStatusAccount(json_t ** j_result) {
 char *getActiveInterface() {
 
   char *pchInterface = NULL;
-  struct _h_result result;
+  struct _db_result result;
 
-  if (h_query_select(pConnDB, "SELECT VLANActivate, VLANID, VLANAutoEnable, VLANAutoConfigured, VLANAutoID FROM TAB_NET_VLAN", &result) == H_OK) {
+  if (db_query_select(pConnDB, "SELECT VLANActivate, VLANID, VLANAutoEnable, VLANAutoConfigured, VLANAutoID FROM TAB_NET_VLAN", &result) == DATABASE_OK) {
     if (result.nb_rows == 1 && result.nb_columns == 5) {
 
-      if (((struct _h_type_int *)result.data[0][0].t_data)->value == 1) {
-        pchInterface = msprintf("%s.%d", DEFAULT_INTERFACE, ((struct _h_type_int *)result.data[0][1].t_data)->value);
-      } else if ( (((struct _h_type_int *)result.data[0][2].t_data)->value == 1) && (((struct _h_type_int *)result.data[0][3].t_data)->value == 1)) {
-        pchInterface = msprintf("%s.%d", DEFAULT_INTERFACE, ((struct _h_type_int *)result.data[0][4].t_data)->value);
+      if (((struct _db_type_int *)result.data[0][0].t_data)->value == 1) {
+        pchInterface = msprintf("%s.%d", DEFAULT_INTERFACE, ((struct _db_type_int *)result.data[0][1].t_data)->value);
+      } else if ( (((struct _db_type_int *)result.data[0][2].t_data)->value == 1) && (((struct _db_type_int *)result.data[0][3].t_data)->value == 1)) {
+        pchInterface = msprintf("%s.%d", DEFAULT_INTERFACE, ((struct _db_type_int *)result.data[0][4].t_data)->value);
       }
     }
   }
@@ -262,11 +262,11 @@ char *getActiveInterface() {
 static int getProtocolMode() {
 
   int protocolMode = 0;
-  struct _h_result result;
+  struct _db_result result;
 
-  if (h_query_select(pConnDB, "SELECT ETHProtocolMode FROM TAB_NET_ETH_WAN", &result) == H_OK) {
+  if (db_query_select(pConnDB, "SELECT ETHProtocolMode FROM TAB_NET_ETH_WAN", &result) == DATABASE_OK) {
     if (result.nb_rows == 1 && result.nb_columns == 1) {
-      protocolMode = ((struct _h_type_int *)result.data[0][0].t_data)->value;
+      protocolMode = ((struct _db_type_int *)result.data[0][0].t_data)->value;
     }
   }
 
@@ -343,7 +343,7 @@ static int getInterfaceType(char *pchIfName, bool isIPv6) {
 
   char *pchQuery, *pchTable, *pchParamDHCP;
   int interfaceType = 0;
-  struct _h_result result;
+  struct _db_result result;
 
   if (!o_strcmp(pchIfName, DEFAULT_INTERFACE)) {
     pchTable = "TAB_NET_ETH_WAN";
@@ -362,9 +362,9 @@ static int getInterfaceType(char *pchIfName, bool isIPv6) {
   }
 
   pchQuery = msprintf("SELECT GROUP_CONCAT( %s, ',' ) as dhcp FROM %s", pchParamDHCP, pchTable);
-  if (h_query_select(pConnDB, pchQuery, &result) == H_OK) {
+  if (db_query_select(pConnDB, pchQuery, &result) == DATABASE_OK) {
     if (result.nb_rows == 1 && result.nb_columns == 1) {
-      interfaceType = ((struct _h_type_int *)result.data[0][0].t_data)->value;
+      interfaceType = ((struct _db_type_int *)result.data[0][0].t_data)->value;
     }
   } 
 
@@ -661,17 +661,17 @@ static char *getAccountsName() {
     }
 
     for (i = 0; i < systemGeneral.accountNumber; i++) {
-      struct _h_result result;
+      struct _db_result result;
       char *pchSelectAccount;
 
        account = i + 1;
 
       pchSelectAccount = msprintf("SELECT CallerIDName, PhoneNumber FROM TAB_VOIP_ACCOUNT where PK = %d", account);
-      if (h_query_select(pConnDB, pchSelectAccount, &result) == H_OK) {
+      if (db_query_select(pConnDB, pchSelectAccount, &result) == DATABASE_OK) {
         if (result.nb_rows == 1) {
 
-          char *pchCallerIDName = ((struct _h_type_text *)result.data[0][0].t_data)->value;
-          char *pchPhoneNumber  = ((struct _h_type_text *)result.data[0][1].t_data)->value;
+          char *pchCallerIDName = ((struct _db_type_text *)result.data[0][0].t_data)->value;
+          char *pchPhoneNumber  = ((struct _db_type_text *)result.data[0][1].t_data)->value;
 
           if (pchCallerIDName) {
             sprintf(pchField, "username_%d", account);
@@ -688,10 +688,10 @@ static char *getAccountsName() {
 
       
       pchSelectAccount = msprintf("SELECT AccountActive FROM TAB_TEL_ACCOUNT where PK = %d;", account);
-      if (h_query_select(pConnDB, pchSelectAccount, &result) == H_OK) {
+      if (db_query_select(pConnDB, pchSelectAccount, &result) == DATABASE_OK) {
         if (result.nb_rows == 1) {
 
-          char *pchEnable = ((struct _h_type_text *)result.data[0][0].t_data)->value;
+          char *pchEnable = ((struct _db_type_text *)result.data[0][0].t_data)->value;
 
           if (pchEnable) {
             sprintf(pchField, "enable_%d", account);

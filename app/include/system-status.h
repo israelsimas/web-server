@@ -37,7 +37,7 @@ extern "C" {
 
 #define BUFFER_ENDP_LENGHT 	      20
 #define ENDPOINT_STATUS 		      "CMD_STATUS"
-#define PORT_SERVER_ENDPOINT_STATUS   4860
+#define PORT_SERVER_ENDPOINT_STATUS 4860
 
 #define PERCENTAGE_STR_LEN        5
 
@@ -81,7 +81,7 @@ typedef enum {
  * INTERNAL FUNCTIONS
  **************************************************************************/
 
-void initSystemGeneral(struct _h_connection *pConn);
+void initSystemGeneral(struct _db_connection *pConn);
 
 SYSTEM_GENERAL *getSystemGeneral();
 
