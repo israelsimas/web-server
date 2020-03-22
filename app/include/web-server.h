@@ -26,6 +26,9 @@ extern "C" {
  * DEFINITIONS
  **************************************************************************/
 
+#define LOG_FACILITY_WEBSERVER     19
+#define LOG_NAME_WEBSERVER        "web-server"
+
 #define DATABASE_PATH             "/data/database.sql"
 
 #define POST_SIZE_MAX             1024

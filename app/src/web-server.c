@@ -98,6 +98,7 @@ int main(int argc, char **argv) {
 
   initSystemGeneral(connDB);
   initFileProcess(connDB);
+  u_log_open(LOG_NAME_WEBSERVER, LOG_FACILITY_WEBSERVER);
 
   if (openMiddleware()) {
     log_error("Invalid open middleware");
