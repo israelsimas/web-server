@@ -24,6 +24,7 @@
 #include <system-request.h>
 #include <middleware.h>
 #include <file-process.h>
+#include <iniparser.h>
 
 #define THIS_FILE "web-server.c"
 
@@ -54,10 +55,33 @@ char *readFile(const char *pchFilename) {
   return pchBuffer;
 }
 
+static int openMiddleware() {
+
+  int port;
+  char *pchHost;  
+
+  if (iniparser_open()) {
+    iniparser_get_config(CFG_MIDDLEWARE_HOST, &pchHost, TYPE_STRING);
+    iniparser_get_config(CFG_MIDDLEWARE_HOST, &port, TYPE_INT);
+  } else {
+    log_error("Invalid parser to middleware");
+    return ERROR;
+  } 
+
+  conn = middleware_open(WEB_SERVER_ID, pchHost, port, NULL);
+  if (!conn) {
+    log_error("Invalid connection middleware");
+    return(1);
+  }
+
+  return SUCCESS;  
+}
+
 int main(int argc, char **argv) {
 
-  int status;
+  int status, port;
   SYSTEM_GENERAL *pSystemStatus;
+  char *pchHost;
   
   // Set the framework port number
   struct _u_instance instance;
@@ -80,11 +104,10 @@ int main(int argc, char **argv) {
   initSystemGeneral(connDB);
   initFileProcess(connDB);
 
-  conn = middleware_open(WEB_SERVER_ID, MIDDLEWARE_HOST, MIDDLEWARE_PORT, NULL);
-  if (!conn) {
-    log_error("Invalid connection middleware");
-    return(1);
-  }
+  if (openMiddleware()) {
+    log_error("Invalid open middleware");
+    return ERROR;
+  } 
   
   u_map_put(instance.default_headers, "Access-Control-Allow-Origin", "*");
   

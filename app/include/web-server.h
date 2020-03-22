@@ -94,6 +94,8 @@ extern "C" {
 #define MIDDLEWARE_PORT		        1883
 #define MIDDLEWARE_HOST		        "127.0.0.1"
 #define MIDDLEWARE_TOPIC          "status/network"
+#define CFG_MIDDLEWARE_HOST       "middleware:host"  
+#define CFG_MIDDLEWARE_PORT       "middleware:port"  
 
 /**************************************************************************
  * TYPEDEFS
