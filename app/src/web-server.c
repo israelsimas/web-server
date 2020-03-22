@@ -335,8 +335,8 @@ int callback_redirect(const struct _u_request *request, struct _u_response* resp
 
   pchHost = (char *)u_map_get(request->map_header, "Host");
   if (pchHost) {
-    if (getIPAddrType(pchHost) == IP_ADDR_TYPE_IPV6) {
-      char *pchAddr = addIPv6Brackets(pchHost);
+    if (ntw_get_IPAddr_type(pchHost) == IP_ADDR_TYPE_IPV6) {
+      char *pchAddr = ntw_addr_IPv6_brackets(pchHost);
       pchAddrHost = strdup(pchAddr);
       o_free(pchAddr);
     } else {

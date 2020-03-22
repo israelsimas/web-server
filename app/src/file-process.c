@@ -249,7 +249,7 @@ void closeUploadFile(E_UPLOAD_FILE_TYPE eType) {
 }
 
 void updateConfig() {
-  char *pchMac = getMac();
+  char *pchMac = ntw_get_mac(DEFAULT_INTERFACE, false);
   char *pchQuery;
 
   if (pchMac) {

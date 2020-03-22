@@ -17,6 +17,15 @@
 extern "C" {
 #endif
 
+/**************************************************************************
+ * INCLUDES
+ **************************************************************************/
+#include <network.h>
+
+/**************************************************************************
+ * DEFINITIONS
+ **************************************************************************/
+
 #ifdef __APPLE__
   #define DEFAULT_INTERFACE "en0"
 #elif __linux__
@@ -27,7 +36,6 @@ extern "C" {
   #endif
 #endif
 
-#define INVALID_IP                "0"
 #define SIZE_STR_GATEWAY          40
 #define SIZE_STR_MAC              40
 #define SIZE_STR_STATUS_SYS       40
@@ -68,15 +76,6 @@ typedef struct SYSTEM_GENERAL {
   char *pchAdminPwd;  
 } SYSTEM_GENERAL;
 
-typedef enum {
-  IP_ADDR_TYPE_NONE,
-  IP_ADDR_TYPE_IPV4,
-  IP_ADDR_TYPE_IPV6,
-  IP_ADDR_TYPE_IPV4_FQDN,
-  IP_ADDR_TYPE_IPV6_FQDN,
-	IP_ADDR_TYPE_IPV4_IPV6,
-} E_IP_ADDR_TYPE;
-
 /**************************************************************************
  * INTERNAL FUNCTIONS
  **************************************************************************/
@@ -84,10 +83,6 @@ typedef enum {
 void initSystemGeneral(struct _db_connection *pConn);
 
 SYSTEM_GENERAL *getSystemGeneral();
-
-char *getActiveInterface();
-
-char *getMac();
 
 bool getRegisterStatusAccount(json_t ** j_result, word wAccount);
 
@@ -106,12 +101,6 @@ bool getGigaSupport(json_t **j_result);
 bool getVersionStatus(json_t **j_result);
 
 bool getFwCloudVersion(json_t **j_result);
-
-char *addIPv6Brackets(char *pchIpAddr);
-
-char *removeBracketsAddr(char *pchIpAddress);
-
-E_IP_ADDR_TYPE getIPAddrType(char *pchIpAddress);
 
 #ifdef __cplusplus
 }

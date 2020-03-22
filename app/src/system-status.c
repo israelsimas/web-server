@@ -29,6 +29,7 @@
 #include <ulfius.h>
 #include <time.h> 
 #include <iniparser.h>
+#include <network.h>
 
 #ifndef	MSG_CONFIRM
   #define MSG_CONFIRM 0
@@ -236,239 +237,6 @@ bool getStatusAccount(json_t ** j_result) {
 	return true;
 }
 
-char *getActiveInterface() {
-
-  char *pchInterface = NULL;
-  struct _db_result result;
-
-  if (db_query_select(pConnDB, "SELECT VLANActivate, VLANID, VLANAutoEnable, VLANAutoConfigured, VLANAutoID FROM TAB_NET_VLAN", &result) == DATABASE_OK) {
-    if (result.nb_rows == 1 && result.nb_columns == 5) {
-
-      if (((struct _db_type_int *)result.data[0][0].t_data)->value == 1) {
-        pchInterface = msprintf("%s.%d", DEFAULT_INTERFACE, ((struct _db_type_int *)result.data[0][1].t_data)->value);
-      } else if ( (((struct _db_type_int *)result.data[0][2].t_data)->value == 1) && (((struct _db_type_int *)result.data[0][3].t_data)->value == 1)) {
-        pchInterface = msprintf("%s.%d", DEFAULT_INTERFACE, ((struct _db_type_int *)result.data[0][4].t_data)->value);
-      }
-    }
-  }
-
-  if (!pchInterface) {
-    pchInterface = o_strdup(DEFAULT_INTERFACE);
-  }
-
-  return pchInterface;
-}
-
-static int getProtocolMode() {
-
-  int protocolMode = 0;
-  struct _db_result result;
-
-  if (db_query_select(pConnDB, "SELECT ETHProtocolMode FROM TAB_NET_ETH_WAN", &result) == DATABASE_OK) {
-    if (result.nb_rows == 1 && result.nb_columns == 1) {
-      protocolMode = ((struct _db_type_int *)result.data[0][0].t_data)->value;
-    }
-  }
-
-  return protocolMode;
-}
-
-static char *getIfaddr(char *pchIfName, int typeINET) {
-
-	struct ifaddrs *ifap, *ifa;
-  char addr[INET6_ADDRSTRLEN], *ret_addr;
-
-  getifaddrs (&ifap);
-  for (ifa = ifap; ifa; ifa = ifa->ifa_next) {
-    if ((o_strcmp(ifa->ifa_name, pchIfName) == 0) && (ifa->ifa_addr->sa_family == typeINET)) {
-
-      if (typeINET == AF_INET) {
-        getnameinfo(ifa->ifa_addr, sizeof(struct sockaddr_in), addr, sizeof(addr), NULL, 0, NI_NUMERICHOST);
-      } else {
-        getnameinfo(ifa->ifa_addr, sizeof(struct sockaddr_in6), addr, sizeof(addr), NULL, 0, NI_NUMERICHOST);
-      }    
-
-      ret_addr = o_strdup(addr);
-      break;
-    }
-  }
-  freeifaddrs(ifap);
-
-	if (ret_addr)
-	  return ret_addr;
-
-	return o_strdup(INVALID_IP);
-}
-
-static char *getMaskaddr(char *pchIfName, int typeINET) {
-
-	struct ifaddrs *ifap, *ifa;
-  char *pchAddr, *ret_addr;
-
-  pchAddr = NULL;
-
-  getifaddrs (&ifap);
-  for (ifa = ifap; ifa; ifa = ifa->ifa_next) {
-    if ((o_strcmp(ifa->ifa_name, pchIfName) == 0) && (ifa->ifa_addr->sa_family == typeINET)) {
-
-      if (typeINET == AF_INET) {
-        char *pchMask;
-        struct sockaddr_in *sa = (struct sockaddr_in *) ifa->ifa_netmask;
-        pchMask = inet_ntoa(sa->sin_addr);
-        if (pchMask) {
-          pchAddr = o_strdup(pchMask);
-        }
-      } else {
-        char pchMask[50];
-        struct sockaddr_in6 *sa = (struct sockaddr_in6 *) ifa->ifa_netmask;
-
-        memset(pchMask, 0, 50);
-        inet_ntop(AF_INET6, (void *) &sa->sin6_addr, pchMask, (sizeof(char) * 50));
-        if (o_strlen(pchMask)) {
-          pchAddr = o_strdup(pchMask);
-        }        
-      }
-      break;
-    }
-  }
-  freeifaddrs(ifap);
-
-	if (!pchAddr)
-	  pchAddr = o_strdup("255.255.255.0");
-
-	return pchAddr;
-}
-
-static int getInterfaceType(char *pchIfName, bool isIPv6) {
-
-  char *pchQuery, *pchTable, *pchParamDHCP;
-  int interfaceType = 0;
-  struct _db_result result;
-
-  if (!o_strcmp(pchIfName, DEFAULT_INTERFACE)) {
-    pchTable = "TAB_NET_ETH_WAN";
-    if (isIPv6) {
-      pchParamDHCP = "ETHActivateDHCPClientIPv6";      
-    } else {
-      pchParamDHCP = "ETHActivateDHCPClient";
-    }
-  } else {
-    pchTable = "TAB_NET_VLAN";
-    if (isIPv6) {
-      pchParamDHCP = "VLANActivateDHCPClientIPv6";      
-    } else {
-      pchParamDHCP = "VLANActivateDHCPClient"; 
-    }
-  }
-
-  pchQuery = msprintf("SELECT GROUP_CONCAT( %s, ',' ) as dhcp FROM %s", pchParamDHCP, pchTable);
-  if (db_query_select(pConnDB, pchQuery, &result) == DATABASE_OK) {
-    if (result.nb_rows == 1 && result.nb_columns == 1) {
-      interfaceType = ((struct _db_type_int *)result.data[0][0].t_data)->value;
-    }
-  } 
-
-  o_free(pchQuery);
-
-  return interfaceType;
-}
-
-static char *getIfGateway(char *pchIfName, bool isIPv6) {
-
-  char *pchGateway = NULL;
-	FILE *pf;
-
-  if (isIPv6) {
-    char *pchComand = msprintf("/sbin/ifconfig %s | ip -6 addr | grep 'inet6 ' | grep 'scope link' | head -1 | awk '{ print $2}'", pchIfName);
-    pf = popen(pchComand, "r");
-    o_free(pchComand);    
-  } else {
-    pf = popen("/sbin/ip route list table default | awk '/default/ { print $3 }'", "r");
-  }
-
-	if (pf) {
-
-		pchGateway = malloc(sizeof(char) * SIZE_STR_GATEWAY);
-		memset(pchGateway, 0, SIZE_STR_GATEWAY);
-		fgets(pchGateway, SIZE_STR_GATEWAY, pf);
-
-		pclose(pf);
-	} 
-
-  if (!pchGateway) {
-    pchGateway = o_strdup("0.0.0.0");  
-  } else if (o_strlen(pchGateway) == 0) {
-    o_free(pchGateway);
-    pchGateway = o_strdup("0.0.0.0");  
-  }
-
-  return pchGateway;
-}
-
-char *getMac() {
-
-  char *pchMAC = NULL;
-	FILE *pf;
-
-  pf = popen("/sbin/ifconfig eth0 | grep -o -E '([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}'", "r");
-	if (pf) {
-
-		pchMAC = malloc(sizeof(char) * SIZE_STR_MAC);
-		memset(pchMAC, 0, SIZE_STR_MAC);
-		fgets(pchMAC, SIZE_STR_MAC, pf);
-
-		pclose(pf);
-	} 
-
-  if (!pchMAC) {
-    pchMAC = o_strdup("00:00:00:00:00:00");  
-  } else if (o_strlen(pchMAC) == 0) {
-    o_free(pchMAC);
-    pchMAC = o_strdup("00:00:00:00:00:00");  
-  }
-
-  return pchMAC;
-}
-
-void get_dns_servers(char **ppchDns1, char **ppchDns2, bool isIPv6) {
-
-  FILE *pf;
-  char line[200] , *pchDNS;
-  bool bDNS1 = true;
-
-  if (isIPv6) {
-    pf = popen("cat /etc/resolvIPv6.conf", "r");  
-  } else {
-    pf = popen("cat /etc/resolvIPv4.conf", "r");
-  }
-
-  if (!pf) {
-    return;
-  }
-
-  while (fgets(line , 200 , pf)) {
-
-    if(line[0] == '#') {
-      continue;
-    }
-
-    if (o_strncmp(line , "nameserver" , o_strlen("nameserver")) == 0) {
-
-      pchDNS = strtok(line , " ");
-      pchDNS = strtok(NULL , " ");
-
-      if (pchDNS && bDNS1) {
-        *ppchDns1 = o_strdup(pchDNS);
-        bDNS1 = false;
-      } else if (pchDNS) {
-        *ppchDns2 = o_strdup(pchDNS);
-      }
-    }
-  }
-
-  pclose(pf);
-}
-
 bool getStatusNetwork(json_t **j_result) {
 
   json_t *j_data;
@@ -486,21 +254,21 @@ bool getStatusNetwork(json_t **j_result) {
   pchMask = NULL;
   pchDns1 = NULL;
   pchDns2 = NULL; 
-  pchInterface = getActiveInterface();
-  protocolMode = getProtocolMode();
+  pchInterface = ntw_get_active_interface_name(pConnDB);
+  protocolMode = ntw_get_protocol_mode(pConnDB);
 
   if ((protocolMode == 0) || (protocolMode == 2)) {
 
-    pchIPv4    = getIfaddr(pchInterface, AF_INET);
-    pchMask    = getMaskaddr(pchInterface, AF_INET);
-    pchGateway = getIfGateway(pchInterface, false);
+    pchIPv4    = ntw_get_if_addr(pchInterface, false);
+    pchMask    = ntw_get_mac(pchInterface, true);
+    pchGateway = ntw_get_if_gateway(pchInterface, false);
 
     json_object_set_new(j_data, "add_ipv4", json_string(pchIPv4));
     json_object_set_new(j_data, "netmask", json_string(pchMask));
     json_object_set_new(j_data, "gateway_ipv4", json_string(pchGateway));
-    json_object_set_new(j_data, "type_ipv4", json_integer(getInterfaceType(pchInterface, false)));
+    json_object_set_new(j_data, "type_ipv4", json_integer(ntw_get_interface_type(pchInterface, false, pConnDB)));
 
-    get_dns_servers(&pchDns1, &pchDns2, false);
+    ntw_get_dns_servers(&pchDns1, &pchDns2, false);
     if (pchDns1) {
       json_object_set_new(j_data, "dns1_ipv4", json_string(pchDns1));
     } else {
@@ -523,14 +291,14 @@ bool getStatusNetwork(json_t **j_result) {
   }
 
   if ((protocolMode == 1) || (protocolMode == 2)) {
-    pchIPv6    = getIfaddr(pchInterface, AF_INET6);
-    pchGateway = getIfGateway(pchInterface, true);
+    pchIPv6    = ntw_get_if_addr(pchInterface, true);
+    pchGateway = ntw_get_if_gateway(pchInterface, true);
 
     json_object_set_new(j_data, "add_ipv6", json_string(pchIPv6));
     json_object_set_new(j_data, "gateway_ipv6", json_string(pchGateway));
-    json_object_set_new(j_data, "type_ipv6", json_integer(getInterfaceType(pchInterface, true)));
+    json_object_set_new(j_data, "type_ipv6", json_integer(ntw_get_interface_type(pchInterface, true, pConnDB)));
 
-    get_dns_servers(&pchDns1, &pchDns2, true);
+    ntw_get_dns_servers(&pchDns1, &pchDns2, true);
     if (pchDns1) {
       json_object_set_new(j_data, "dns1_ipv6", json_string(pchDns1));
     } else {
@@ -551,7 +319,7 @@ bool getStatusNetwork(json_t **j_result) {
     json_object_set_new(j_data, "dns2_ipv6", json_string(""));
   }  
 
-  pchMac = getMac();
+  pchMac = ntw_get_mac(DEFAULT_INTERFACE, false);
   json_object_set_new(j_data, "mac", json_string(pchMac));
   json_object_set_new(j_data, "prot_mode", json_integer(protocolMode));
 
@@ -732,7 +500,7 @@ bool getGeneralStatus(json_t **j_result) {
     return false;
   } 
 
-  pchMac = getMac();
+  pchMac = ntw_get_mac(DEFAULT_INTERFACE, false);
   json_object_set_new(j_data, "mac", json_string(pchMac));
   json_object_set_new(j_data, "version", json_string(systemGeneral.pchVersion));
   if (systemGeneral.pchBranch) {
@@ -744,7 +512,7 @@ bool getGeneralStatus(json_t **j_result) {
   }
   json_object_set_new(j_data, "numAcc", json_integer(systemGeneral.accountNumber));
 
-  pchIPv4 = getIfaddr(DEFAULT_INTERFACE, AF_INET);
+  pchIPv4 = ntw_get_if_addr(DEFAULT_INTERFACE, false);
   json_object_set_new(j_data, "ip_address", json_string(pchIPv4));
 
   pchAccountsName = getAccountsName();
@@ -850,120 +618,4 @@ bool getFwCloudVersion(json_t **j_result) {
   json_array_append_new(*j_result, j_data);
 
 	return true;
-}
-
-char *addIPv6Brackets(char *pchIpAddr) {
-
-	char *pchAddrBrackets = NULL;
-	int lenAddr = 0;
-
-	if (!pchIpAddr) {
-		return NULL;
-	}
-
-	if ((pchIpAddr[0] != '[') && (pchIpAddr[strlen(pchIpAddr) - 1] != ']')) {
-		lenAddr = strlen(pchIpAddr) + 3;
-		pchAddrBrackets = malloc(sizeof(char) * lenAddr);
-		memset(pchAddrBrackets, 0, lenAddr);
-		strcpy(pchAddrBrackets, "[");
-		strcat(pchAddrBrackets, pchIpAddr);
-		strcat(pchAddrBrackets, "]");
-
-		return pchAddrBrackets;
-	} else if ((pchIpAddr[0] != '[') && (pchIpAddr[strlen(pchIpAddr) - 1] == ']')) {
-			lenAddr = strlen(pchIpAddr) + 2;
-			pchAddrBrackets = malloc(sizeof(char) * lenAddr);
-			memset(pchAddrBrackets, 0, lenAddr);
-			strcpy(pchAddrBrackets, "[");
-			strcat(pchAddrBrackets, pchIpAddr);
-
-			return pchAddrBrackets;
-
-	} else if ((pchIpAddr[0] == '[') && (pchIpAddr[strlen(pchIpAddr) - 1] != ']')) {
-			lenAddr = strlen(pchIpAddr) + 2;
-			pchAddrBrackets = malloc(sizeof(char) * lenAddr);
-			memset(pchAddrBrackets, 0, lenAddr);
-			strcpy(pchAddrBrackets, pchIpAddr);
-			strcat(pchAddrBrackets, "]");
-
-			return pchAddrBrackets;
-	} else {
-		return pchIpAddr;
-	}
-}
-
-char *removeBracketsAddr(char *pchIpAddress) {
-
-	char *pchIpAddr = o_strdup(pchIpAddress);
-
-	if (!pchIpAddr) {
-		return NULL;
-	}
-
-	if (pchIpAddr[0] == '[') {
-		memmove(pchIpAddr, pchIpAddr+1, strlen(pchIpAddr));
-	}
-
-	if (pchIpAddr[o_strlen(pchIpAddr) -1] == ']') {
-		pchIpAddr[o_strlen(pchIpAddr) -1] = POINTER_NULL;
-	}
-
-	return pchIpAddr;
-}
-
-E_IP_ADDR_TYPE getIPAddrType(char *pchIpAddress) {
-
-	struct in_addr sin_addr;
-	struct in6_addr sin6_addr;
-	struct addrinfo hint, *pResult, *pResultIP;
-	int ret;
-	bool bHasIPv4, bHasIPv6;
-	E_IP_ADDR_TYPE type = IP_ADDR_TYPE_NONE;
-	char *pchIpAddr 		= removeBracketsAddr(pchIpAddress);
-
-	if (!pchIpAddr) {
-		return type;
-	}
-
-	if (inet_aton(pchIpAddr, &sin_addr)) {
-		return IP_ADDR_TYPE_IPV4;
-	}
-
-	if (inet_pton(AF_INET6, pchIpAddr, &sin6_addr)) {
-		return IP_ADDR_TYPE_IPV6;
-	}
-
-	bHasIPv4 = false;
-	bHasIPv6 = false;
-
-	pResult = NULL;
-	memset(&hint, 0, sizeof hint);
-	hint.ai_family = PF_UNSPEC;
-
-	ret = getaddrinfo(pchIpAddr, NULL, &hint, &pResult);
-	if (ret) {
-		free(pchIpAddr);
-		return IP_ADDR_TYPE_NONE;
-	}
-
-	for (pResultIP = pResult; pResultIP != NULL; pResultIP = pResultIP->ai_next) {
-		if (pResultIP->ai_family == AF_INET) {
-			bHasIPv4 = true;
-		} else if (pResultIP->ai_family == AF_INET6) {
-			bHasIPv6 = true;
-		}
-	}
-
-	if (bHasIPv4 && bHasIPv6) {
-		type = IP_ADDR_TYPE_IPV4_IPV6;
-	} else if (bHasIPv4) {
-		type = IP_ADDR_TYPE_IPV4_FQDN;
-	} else if (bHasIPv6) {
-		type = IP_ADDR_TYPE_IPV6_FQDN;
-	}
-
-	freeaddrinfo(pResult);
-	o_free(pchIpAddr);
-
-	return type;
 }

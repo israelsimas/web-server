@@ -30,6 +30,7 @@
 #define THIS_FILE "system-request.c"
 
 extern middleware_conn conn;
+extern struct _db_connection *connDB;
 
 void restartSystem() {
 
@@ -182,7 +183,7 @@ static void createAutopFile(struct _u_map *map_url) {
       }
     }
 
-    pchContent = msprintf("\nparams.macaddress = %s\n", getMac());   
+    pchContent = msprintf("\nparams.macaddress = %s\n", ntw_get_mac(DEFAULT_INTERFACE, false));   
     size = o_strlen(pchContent);
     fwrite(pchContent, size, 1, pFile);
     o_free(pchContent);
@@ -207,7 +208,7 @@ void startCaptureLog() {
   system("sync");
   system("killall tcpdump");
 
-  pchInterface = getActiveInterface();
+  pchInterface = ntw_get_active_interface_name(connDB);
 
   pchCommand = msprintf("tcpdump -i %s -C %d -W %d -w /data/logs/log &", pchInterface, lenghtLog, numFilesLog);
 
