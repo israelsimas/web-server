@@ -9,6 +9,7 @@ include_directories( app/include/ )
 if(APPLE)
   include_directories( /usr/local/include )
   link_directories( /usr/local/lib/ )
+  set(CMAKE_MACOSX_RPATH ON)
 endif()
 
 add_definitions(-D_HOEL_SQLITE=1)
