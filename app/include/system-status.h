@@ -26,16 +26,6 @@ extern "C" {
  * DEFINITIONS
  **************************************************************************/
 
-#ifdef __APPLE__
-  #define DEFAULT_INTERFACE "en0"
-#elif __linux__
-  #if 1
-  #define DEFAULT_INTERFACE "eth0"
-  #else
-  #define DEFAULT_INTERFACE "wlp3s0"
-  #endif
-#endif
-
 #define SIZE_STR_GATEWAY          40
 #define SIZE_STR_MAC              40
 #define SIZE_STR_STATUS_SYS       40
