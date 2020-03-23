@@ -163,10 +163,14 @@ bool getRegisterStatusAccount(json_t ** j_result, word wAccount) {
 
 static int getEndpointStatus() {
 
-  int endpointStatus = ENDPOINT_BUSY;
+  int endpointStatus;
   int sockfd, recvLen, slen; 
   char pchBuffer[BUFFER_REG_LENGHT]; 
   struct sockaddr_in servaddr; 
+
+#ifndef PLATFORM_X86
+
+  endpointStatus = ENDPOINT_BUSY;
 
   if ( (sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0 ) { 
     log_error("socket creation failed"); 
@@ -186,10 +190,13 @@ static int getEndpointStatus() {
      endpointStatus = atoi(pchBuffer);
   }
 
-  close(sockfd); 
+  close(sockfd);
+
+#else  
+  endpointStatus = 1;
+#endif   
 
   return endpointStatus;
-
 }
 
 bool getEndpointFreeStatus(json_t ** j_result) {
