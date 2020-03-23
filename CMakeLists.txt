@@ -12,7 +12,7 @@ if(APPLE)
   set(CMAKE_MACOSX_RPATH ON)
 endif()
 
-add_definitions(-D_HOEL_SQLITE=1)
+# add_definitions(-DPLATFORM_X86=1)
 
 file(GLOB headers "app/include/*.h" )
 file(GLOB sources "app/src/*.c" )
