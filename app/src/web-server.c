@@ -53,12 +53,12 @@ char *readFile(const char *pchFilename) {
 
 static int openMiddleware() {
 
-  int port;
+  word port;
   char *pchHost;  
 
   if (iniparser_open()) {
     iniparser_get_config(CFG_MIDDLEWARE_HOST, &pchHost, TYPE_STRING);
-    iniparser_get_config(CFG_MIDDLEWARE_PORT, &port, TYPE_INT);
+    iniparser_get_config(CFG_MIDDLEWARE_PORT, &port, TYPE_WORD);
   } else {
     log_error("Invalid parser to middleware");
     return ERROR;
