@@ -91,6 +91,9 @@ static void getRegisterStatus(word wAccount, word *wRegisterCode, bool *bRegiste
 #ifdef __APPLE__
   *wRegisterCode = 200;
   *bRegisterICIP = 0;
+#elif PLATFORM_X86  
+  *wRegisterCode = 200;
+  *bRegisterICIP = 0;
 #else
   int sockfd, recvLen, slen; 
   char pchBuffer[BUFFER_REG_LENGHT]; 
