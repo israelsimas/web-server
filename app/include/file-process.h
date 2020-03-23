@@ -13,6 +13,9 @@
 #ifndef FILE_PROCESS_H_
 #define FILE_PROCESS_H_
 
+#include <ulfius.h>
+#include <standard-types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
