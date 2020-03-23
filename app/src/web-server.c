@@ -58,11 +58,11 @@ static int openMiddleware() {
 
   if (iniparser_open()) {
     iniparser_get_config(CFG_MIDDLEWARE_HOST, &pchHost, TYPE_STRING);
-    iniparser_get_config(CFG_MIDDLEWARE_HOST, &port, TYPE_INT);
+    iniparser_get_config(CFG_MIDDLEWARE_PORT, &port, TYPE_INT);
   } else {
     log_error("Invalid parser to middleware");
     return ERROR;
-  } 
+  }
 
   conn = middleware_open(WEB_SERVER_ID, pchHost, port, NULL);
   if (!conn) {
