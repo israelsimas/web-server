@@ -20,6 +20,7 @@
 #include <middleware.h>
 #include <file-process.h>
 #include <iniparser.h>
+#include <base64.h>
 
 #define THIS_FILE "web-server.c"
 
@@ -377,7 +378,7 @@ int callback_database(const struct _u_request *request, struct _u_response *resp
 
     char *pchQueryDecode;
 
-    pchQueryDecode = b64_decode(ppKeys[0], strlen(ppKeys[0]));
+    pchQueryDecode = (char *)b64_decode(ppKeys[0], strlen(ppKeys[0]));
     setQuerys(pchQueryDecode, pchQuerys, &lenQuerys);
     o_free(pchQueryDecode);
 

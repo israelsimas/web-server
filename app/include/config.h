@@ -24,11 +24,6 @@ extern "C" {
 /**************************************************************************
  * DEFINITIONS
  **************************************************************************/
-#define CONFIG_FILE_PATH        "/etc/resources.ini"
-
-#define CONFIG_RELEASE_PATH     "/etc/"
-#define CONFIG_RELEASE_FILE     "release"
-#define PRODUCT_VERSION         "version "
 
 /* Init config for handset */
 #define CFG_HANDSETS_NUMBER     "handsetGeneral:handsetNumber"
