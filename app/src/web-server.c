@@ -1075,7 +1075,7 @@ int callback_backup(const struct _u_request *request, struct _u_response *respon
     }
   }
   
-  return U_CALLBACK_CONTINUE;
+  return U_CALLBACK_COMPLETE;
 }
 
 char * print_map(const struct _u_map * map) {
